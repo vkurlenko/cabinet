@@ -1,0 +1,94 @@
+.ext{
+    width:1169px;
+    height:1000px;
+}
+.logo{
+    border-left:1px solid #000;
+    border-right:1px solid #000;
+    text-align: center;
+    padding-top:18px;
+}
+
+.header-block > div{
+    margin-top:30px;
+}
+
+.header-phones{
+    font-size:14px;
+}
+
+.header-addr, .header-phones{
+    /*padding-top:40px;*/
+    line-height: 1.25em;
+}
+
+.header-addr, .header-phones span{
+    font-size:18px;
+}
+
+.header-addr{
+    padding-left:55px;
+    height:160px;
+}
+
+.header-phones > div{
+    margin-top: 10px;
+    font-size:14px;
+}
+
+#call_order_link{
+    margin:0 !important;
+    width:150px; !important;
+}
+
+.head_search_frm{
+    left: 55px;
+}
+
+.addr{
+    margin-top: 18px;
+    font-size: 18px;
+}
+
+.menu-block{
+    padding:0;
+}
+
+.menu a{
+    text-transform: uppercase;
+    font-size: 16px;
+    color: #000;
+    padding:30px 20px;
+    display: inline-block;
+}
+
+.auth a, .auth span, .auth button{
+    /*text-transform: lowercase;*/
+    font-size: 14px;
+    color: #000;
+    padding:0 10px 0 0;
+    display: inline-block;
+    text-decoration: underline;
+}
+
+.auth span{
+    text-decoration: none;
+}
+
+.auth a:hover, .auth button:hover{
+    text-decoration: none;
+}
+
+.role{
+    text-transform: lowercase;
+    color: #c3325f !important;
+}
+
+.site-signup{
+    border-right:1px solid #000;
+}
+
+.footer-block{
+    border-bottom: 1px solid #000;
+}
+
