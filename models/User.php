@@ -206,4 +206,9 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->hasOne(AuthAssignment::className(), ['user_id' => 'id']);
     }
 
+    public function getOrders()
+    {
+        return $this->hasMany(Orders::className(), ['uid' => 'id']);
+    }
+
 }

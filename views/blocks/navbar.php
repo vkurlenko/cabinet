@@ -18,7 +18,7 @@ if(Yii::$app->user->can('director')){
 }
 
 if(Yii::$app->user->can('manager')){
-    $items[] = ['label' => 'Список заказов', 'url' => ['/site/index']];
+    $items[] = ['label' => 'Список заказов', 'url' => ['/orders/index']];
     $items[] = ['label' => 'Клиенты', 'url' => ['/user/index?role=user']];
 }
 

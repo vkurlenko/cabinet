@@ -1,6 +1,6 @@
 .ext{
     width:1169px;
-    height:1000px;
+    /*height:1000px;*/
 }
 .logo{
     border-left:1px solid #000;
@@ -87,6 +87,104 @@
 .site-signup{
     border-right:1px solid #000;
 }
+
+/* статус в заголовке */
+span.status{
+	font-weight: bold;
+	display:inline-block;
+	float:right;	
+	text-transform: lowercase;
+	color: #CC3333;
+}
+span.status > strong{
+	text-transform: none;
+	color: #000;
+}
+/* /статус в заголовке */
+
+/* таблица просмотра */
+.order-view-table tr{
+	margin: 5px 0;
+}
+
+.order-view-table td{
+	padding: 10px 10px 10px 0;
+}
+
+.order-view-table td.title{
+	padding-bottom: 0;
+}
+
+.order-view-table td.cost-title{
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.order-view-table td.cost-title .currency{
+	text-transform: lowercase;
+}
+
+.bg-gray  > div{
+	background: #EBEBEB;
+	padding:10px !important;
+}
+
+.product-img img{
+	max-width: 100%;
+}
+
+span.sum{
+	color: #CC3333;
+}
+
+.blank-link a{
+	display: inline-block;
+	margin-top: 10px;
+	margin-left: 10px;
+	text-decoration: underline;
+	font-size:12px;
+	font-weight: bold;
+}
+
+.blank-link img{
+	float:left;
+}
+/* /таблица просмотра */
+
+/* кнопки */
+.ext-btn{
+	border-radius: 0;
+	background-color: #bfa96f;
+	border: 0;
+	padding: 4px;
+	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: bold;
+	width: 225px;
+	color: #fff;
+	text-decoration:none;
+	display: inline-block;
+	text-align: center;
+	margin: 5px 10px 5px 0;	
+}
+
+.ext-btn:hover, .ext-btn:active, .ext-btn:focus{
+	/*background-color: red;*/
+	color: #fff;
+	text-decoration:none;
+}
+
+.ext-btn.red{
+	background: #CE4C3E;
+}
+.ext-btn.black{
+	background: #000;
+}
+.ext-btn.gray{
+	background: #AAAAAA;
+}
+/* /кнопки */
+
 
 .footer-block{
     border-bottom: 1px solid #000;

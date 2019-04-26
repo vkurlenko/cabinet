@@ -11,8 +11,6 @@ use app\controllers\UserController;
 $this->title = 'Пользователи';
 $this->params['breadcrumbs'][] = $this->title;
 
-//debug($this->params);
-echo date('d-m-Y', 1456224205);
 ?>
 <div class="user-index">
 
@@ -30,7 +28,16 @@ echo date('d-m-Y', 1456224205);
         'columns' => [
            // ['class' => 'yii\grid\SerialColumn'],
             'id',
-            'username',
+            //'username',
+			[
+                'attribute' => 'username',
+                //'label' => 'Роль',
+                'value' => function($data){
+                    return Html::a($data->username, ['user/update/?id='.$data->id]);
+                },
+				'format' => 'html'
+ 				
+            ],
             [
                 'attribute' => 'role.item_name',
                 'label' => 'Роль',
@@ -38,7 +45,7 @@ echo date('d-m-Y', 1456224205);
                     return UserController::getRoleName($data->role->item_name);
                 }
             ],
-            'email:email',
+            'email',
             'phone',
             [
                 'attribute' => 'status',

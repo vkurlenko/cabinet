@@ -195,6 +195,17 @@ class UserController extends Controller
 
         return $roleName;
     }
+	
+	public function getUser($uid = null)
+	{	
+		$user = [];
+		
+		if($uid){
+			$user = User::findOne($uid);
+		}
+		
+		return $user;
+	}
 
     /**
      * Finds the User model based on its primary key value.
