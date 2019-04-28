@@ -23,7 +23,7 @@ if(Yii::$app->user->can('manager')){
 }
 
 if(Yii::$app->user->can('user')){
-    $items[] =  ['label' => 'Мои заказы', 'url' => ['/site/index']];
+    $items[] =  ['label' => 'Мои заказы', 'url' => ['/orders/index']];
     /*$items[] =  ['label' => 'About', 'url' => ['/site/about']];
     $items[] =  ['label' => 'Contact', 'url' => ['/site/contact']];*/
 }

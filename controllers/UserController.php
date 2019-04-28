@@ -34,7 +34,7 @@ class UserController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
-                        'roles' => ['admin', 'director', 'manager']
+                        'roles' => ['admin', 'director', 'manager', 'user']
                     ],
                 ],
             ],
@@ -164,6 +164,9 @@ class UserController extends Controller
         return $this->redirect(['index']);
     }
 
+    /**
+     * получим роль пользователя в виде строки (Клиент Администратор)
+     * */
     public function getUserRole($uid = null)
     {
         $roles = '';
@@ -180,6 +183,9 @@ class UserController extends Controller
         return $roles;
     }
 
+    /**
+     * получим название роли по ее алиасу (admin => Адмиистратор)
+     * */
     public function getRoleName($role = null)
     {
         $roleName = '';
@@ -195,7 +201,10 @@ class UserController extends Controller
 
         return $roleName;
     }
-	
+
+    /**
+    *   получим данные пользователя
+     */
 	public function getUser($uid = null)
 	{	
 		$user = [];
@@ -206,6 +215,15 @@ class UserController extends Controller
 		
 		return $user;
 	}
+
+	public function renderUserInfo($uid = null)
+    {
+        if($uid){
+            $user = User::find()->where(['id' => $uid])->asArray()->one();
+            return $this->render('/blocks/userinfo', compact('user'));
+        }
+
+    }
 
     /**
      * Finds the User model based on its primary key value.

@@ -65,11 +65,12 @@ class RbacController extends Controller
 		
 		// клиенту
 		$auth->addChild($user, $createOrder);
+        $auth->addChild($manager, $editUser);
 		
 		// менеджеру
 		$auth->addChild($manager, $user);
 		$auth->addChild($manager, $editOrder);
-		$auth->addChild($manager, $editUser);
+		//$auth->addChild($manager, $editUser);
 		
 		// директору
 		$auth->addChild($director, $manager);

@@ -6,6 +6,9 @@ use yii\widgets\DetailView;
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 
+// проверка прав пользователя
+\app\controllers\OrdersController::checkMyOrder($model->id);
+
 $this->title = $model->username;
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;

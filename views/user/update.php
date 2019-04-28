@@ -2,13 +2,16 @@
 
 use yii\helpers\Html;
 
+// проверка прав пользователя
+\app\controllers\OrdersController::checkMyOrder($model->id);
+
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 
 $this->title = 'Изменить данные пользователя: ' . $model->username;
-$this->params['breadcrumbs'][] = ['label' => 'Users', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->params['breadcrumbs'][] = 'Изменить';
 ?>
 <div class="user-update">
 

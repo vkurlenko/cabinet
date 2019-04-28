@@ -40,6 +40,7 @@ class OrdersController extends Controller
     public function actionIndex()
     {
         $searchModel = new OrdersSearch();
+
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -227,7 +228,11 @@ class OrdersController extends Controller
 
         return $fills;
     }
-	
+
+    /**
+     * получить email пользователя по его ID
+     *
+     */
 	public function getUserEmail($uid = null)
 	{
 		$email = '';
@@ -239,7 +244,10 @@ class OrdersController extends Controller
 		
 		return $email;
 	}
-	
+
+	/**
+	 * изменение статуса заказа
+     */
 	public static function setStatus($id = null, $status = null)
 	{
 		if($id && $status){
@@ -252,6 +260,24 @@ class OrdersController extends Controller
 			$order->save();			
 		}
 	}
+
+    /**
+     * проверка прав пользователя на просмотр/редактирование заказа
+     *
+     */
+	public function checkMyOrder($order_uid = null)
+    {
+        if($order_uid){
+            $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+            if($role['user'] && $order_uid != Yii::$app->user->getId()){
+                return Yii::$app->response->redirect(['orders/index']);
+            }
+        }
+
+    }
+
+
 
 
 }

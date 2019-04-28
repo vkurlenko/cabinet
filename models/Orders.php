@@ -38,7 +38,7 @@ class Orders extends \yii\db\ActiveRecord
     {
         return [
             [['uid', 'name', 'status'], 'required'],
-            [['uid', 'cost', 'payed', 'manager', 'status'], 'integer'],
+            [['uid', 'cost', 'payed', 'manager', 'status', 'tasting_set'], 'integer'],
             [['filling', 'description', 'address', 'deliv_name', 'deliv_phone'], 'string'],
             [['deliv_date', 'order_date', 'update_date'], 'safe'],
             [['name'], 'string', 'max' => 255],
@@ -55,6 +55,7 @@ class Orders extends \yii\db\ActiveRecord
             'uid' => 'Заказчик',
             'name' => 'Название торта',
             'filling' => 'Начинка',
+            'tasting_set' => 'Дегустационный сет',
             'description' => 'Описание заказа',
             'deliv_date' => 'Дата доставки',
 			'deliv_name' => 'Клиент',

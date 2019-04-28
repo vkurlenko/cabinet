@@ -22,7 +22,7 @@ if(Yii::$app->user->isGuest){
 else{
     $items[] = Html::beginForm(['/site/logout'], 'post')
         . '<span>'.Yii::$app->user->identity->email.' ('.Yii::$app->user->getId().') '
-        //. '<br><span class="role">'.$roles.'</span></span>'
+        . '<br><span class="role">'.$roles.'</span></span>'
         . ''
         . Html::submitButton(
             'выйти',

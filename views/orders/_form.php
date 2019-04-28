@@ -30,22 +30,26 @@ foreach($arr as $k => $v){
 	<div class="col-md-8">
 		<?php $form = ActiveForm::begin(); ?>
 
-		<?= $form->field($model, 'uid')->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите клиента']) ?>
+		<?= $form->field($model, 'uid')
+            ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите клиента'])
+            ->hint('Только зарегистрированные клиенты') ?>
 		
 		<div class="form-group">
 			<label class="control-label">E-mail</label>
 			<span><?=\app\controllers\OrdersController::getUserEmail($model->uid)?></span>
 		</div>
 		
-		<?= $form->field($model, 'deliv_name')->textInput() ?>
+		<?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
-		<?= $form->field($model, 'deliv_phone')->textInput() ?>		
+		<?= $form->field($model, 'deliv_phone')->textInput()->hint('Кому предназначен заказ')  ?>
 
 		<?= $form->field($model, 'name')->dropDownList($products, ['prompt' => 'Выберите торт']) ?>
 
 		<?= $form->field($model, 'filling')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку']) ?>
 
 		<?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
+
+        <?= $form->field($model, 'tasting_set')->checkbox([]);//dropDownList([0 => 'нет', 1 => 'да'], ['prompt' => '---'])?>
 
 		<?= $form->field($model, 'deliv_date')->textInput();//widget(\kartik\date\DatePicker::className(), $datepicker); ?>
 
@@ -59,7 +63,7 @@ foreach($arr as $k => $v){
 
 		<?/*= $form->field($model, 'update_date')->textInput() */?>
 
-		<?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager')) ?>
+		<?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера']) ?>
 
 		
 		<?= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) ?>

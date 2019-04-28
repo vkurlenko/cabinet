@@ -6,6 +6,11 @@ use yii\widgets\DetailView;
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
 
+// проверка прав пользователя
+\app\controllers\OrdersController::checkMyOrder($model->uid);
+
+
+
 $this->title = 'Заказ №'.$model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
@@ -61,6 +66,10 @@ $products = \app\controllers\OrdersController::getProducts();
 				<tr>
 					<td colspan=2><?=$model->description?></td>					
 				</tr>
+                <tr>
+                    <td>Дегустационный сет</td>
+                    <td><?=$model->tasting_set ? 'Да' : 'Нет';?></td>
+                </tr>
 				<tr>
 					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=$model->cost?></span> <span class="currency">руб.</span></td>					
 				</tr>

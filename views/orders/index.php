@@ -9,6 +9,11 @@ use yii\grid\GridView;
 
 $this->title = 'Список заказов';
 $this->params['breadcrumbs'][] = $this->title;
+
+$roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+if(count($roles) == 1 && $roles['user'])
+    echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
+
 ?>
 <div class="orders-index">
 

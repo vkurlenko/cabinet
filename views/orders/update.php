@@ -5,6 +5,9 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
 
+// проверка прав пользователя
+\app\controllers\OrdersController::checkMyOrder($model->uid);
+
 $this->title = 'Заказ № ' . $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];

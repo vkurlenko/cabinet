@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Orders;
@@ -50,16 +51,26 @@ class OrdersSearch extends Orders
 
         $this->load($params);
 
+
+
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
             return $dataProvider;
         }
 
+        // проверим роль пользователя и для КЛИЕНТА выведем только его заказы,
+        // а для остальных ролей - все заказы
+        $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+        if($role['user'])
+            $uid = Yii::$app->user->getId();
+        else
+            $uid = $this->uid;
+
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'uid' => $this->uid,
+            'uid' => $uid,
             'deliv_date' => $this->deliv_date,
 			'deliv_name' => $this->deliv_name,
 			'deliv_phone' => $this->deliv_phone,
