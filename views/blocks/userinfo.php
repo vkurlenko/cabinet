@@ -7,7 +7,7 @@ if(!$user){
 //debug($user);
 ?>
 <h1>Мои данные</h1>
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered user-info">
     <tr>
         <td><?=$user['username']?></td>
         <td><?=$user['phone']?></td>

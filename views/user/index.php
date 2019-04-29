@@ -14,11 +14,11 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Новый пользователь', ['create'], ['class' => 'garamond']) ?></span></h1>
 
-    <p>
-        <?= Html::a('Новый пользователь', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <!--<p>
+        <?/*= Html::a('Новый пользователь', ['create'], ['class' => 'btn btn-success']) */?>
+    </p>-->
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
@@ -51,7 +51,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'status',
                 'value' => function($data){
                     return $data->status ? 'активен' : 'отключен';
-                    //return UserController::getRoleName($data->role->item_name);
                 },
                 'format' => 'html'
             ],

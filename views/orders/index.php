@@ -7,21 +7,24 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\OrdersSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Список заказов';
-$this->params['breadcrumbs'][] = $this->title;
 
+$this->title = 'Список заказов';
 $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
-if(count($roles) == 1 && $roles['user'])
+if(count($roles) == 1 && $roles['user']){
     echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
+    $this->title = 'Мои заказы';
+}
+
+$this->params['breadcrumbs'][] = $this->title;
 
 ?>
 <div class="orders-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span></h1>
 
-    <p>
-        <?= Html::a('Создать новый заказ', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <!--<p>
+        <?/*= Html::a('Создать новый заказ', ['create'], ['class' => 'btn btn-success']) */?>
+    </p>-->
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
     <? //debug(\app\controllers\OrdersController::getProducts());?>
