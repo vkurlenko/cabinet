@@ -7,7 +7,7 @@ use yii\widgets\DetailView;
 /* @var $model app\models\Orders */
 
 // проверка прав пользователя
-\app\controllers\OrdersController::checkMyOrder($model->uid);
+\app\controllers\OrdersController::checkMyOrder($model->uid, $model->manager);
 
 
 
@@ -83,13 +83,13 @@ $products = \app\controllers\OrdersController::getProducts();
 			</table>
 			
 			<div>				
-				<?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id], ['class' => 'ext-btn']) ?>
+				<?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
 				<?= Html::a('Выставить счет', ['update', 'id' => $model->id], ['class' => 'ext-btn red']) ?>
 				<div></div>
 				<?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
 				<?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
 				<div></div>
-				<?= Html::a('Удалить заказ', ['delete', 'id' => $model->id], [
+				<?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
 					'class' => 'ext-btn black',
 					'data' => [
 						'confirm' => 'Вы действительно хотите удалить заказ?',
@@ -104,6 +104,10 @@ $products = \app\controllers\OrdersController::getProducts();
 				<?=$products[$model->name]['img'] ? Html::img('http://andreychef/images/restoran_menu/'.$products[$model->name]['img']) : '';?>
 			</div>			
 		</div>
+	</div>
+	
+	<div class="log">
+		<?=\app\controllers\OrdersController::getLog($model->id);?>
 	</div>
 	
 	

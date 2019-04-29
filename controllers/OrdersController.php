@@ -9,6 +9,7 @@ use Yii;
 use app\models\Orders;
 use app\models\OrdersSearch;
 use app\models\User;
+use app\models\Status;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -28,6 +29,15 @@ class OrdersController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'delete' => ['POST'],
+                ],
+            ],
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['admin', 'director', 'manager', 'user']
+                    ],
                 ],
             ],
         ];
@@ -59,6 +69,7 @@ class OrdersController extends Controller
     {
 		if($setstatus){
 			self::setStatus($id, $setstatus);
+            return $this->redirect(['view', 'id' => $id]);
 		}
 	
         return $this->render('view', [
@@ -94,7 +105,7 @@ class OrdersController extends Controller
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id, $setstatus = 7)
     {
         $model = $this->findModel($id);
 
@@ -102,8 +113,14 @@ class OrdersController extends Controller
 		
 		$old_status = $model->status;
 		$model->status = 7; // заказ редактируется!!!
+		if($setstatus){
+			self::setStatus($id, $setstatus);
+		}
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+			
+			self::setLog($id, $old_status);
+			
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -120,11 +137,17 @@ class OrdersController extends Controller
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
+    public function actionDelete($id, $setstatus = 30)
+	{
+		// проверка прав на удаление
+		$model = $this->findModel($id);
+		self::checkMyOrder($model->uid, $model->manager);
+        
+		self::setLog($id, $model->status, $setstatus);
+		
+		$this->findModel($id)->delete();
+		
+		return $this->redirect(['index']);
     }
 
     /**
@@ -247,6 +270,8 @@ class OrdersController extends Controller
 
 	/**
 	 * изменение статуса заказа
+	 * $id - id заказа
+	 * $status - новый статус заказа
      */
 	public static function setStatus($id = null, $status = null)
 	{
@@ -254,18 +279,21 @@ class OrdersController extends Controller
 			$order = Orders::find()->where(['id' => $id])->one();
 			
 			if($order){
+				$old_status = $order->status;
 				$order->status = $status;
-			}
-			
-			$order->save();			
+				
+				if($order->save()){
+					self::setLog($id, $old_status);
+				}
+			}					
 		}
 	}
 
     /**
      * проверка прав пользователя на просмотр/редактирование заказа
-     *
+     * $order_uid - id заказчика
      */
-	public function checkMyOrder($order_uid = null)
+	public function checkMyOrder($order_uid = null, $order_manager = null)
     {
         if($order_uid){
             $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
@@ -273,11 +301,51 @@ class OrdersController extends Controller
             if($role['user'] && $order_uid != Yii::$app->user->getId()){
                 return Yii::$app->response->redirect(['orders/index']);
             }
+			
+			if($role['manager'] && $order_manager != Yii::$app->user->getId()){
+                return Yii::$app->response->redirect(['orders/index']);
+            }
+        }
+    }
+	
+	/**
+     * логирование изменения статусов заказа
+     * $order_id - id заказа
+     * $old_status - прежний статус заказа
+	 */
+	public function setLog($order_id = null, $old_status = null, $new_status = null)
+	{		
+		if($order_id){
+			$model = Orders::find()->where(['id' => $order_id])->one();
+			
+			$status = new Status();
+			$status->order_id = $model->id;
+			$status->datetime = date('Y-m-d H:i:s');
+			$status->uid = Yii::$app->user->getId();			
+			$old_status ? $status->old_status = $old_status : $status->old_status = 0;					
+			$new_status ? $status->new_status = $new_status : $status->new_status = $model->status;			
+			$status->save(false);
+		}
+		
+		return true;
+	}
+	
+	/**
+     * вывод лога изменения статусов заказа
+     * $order_id - id заказа
+	 */
+	public function getLog($order_id)
+	{
+		if($order_id){
+		    $logs = Status::find()
+                ->where(['order_id' => $order_id])
+                ->orderBy(['datetime' => SORT_DESC])
+                ->asArray()
+                ->all();
+
+            return $this->render('/blocks/log', compact('logs'));
         }
 
-    }
-
-
-
-
+        return false;
+	}
 }

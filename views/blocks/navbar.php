@@ -5,10 +5,9 @@ use yii\helpers\Url;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 
-/*
- * если текущий url == меню url, то добавим class=active *
- *
- * */
+/**
+ * если текущий url == меню url, то добавим class=active
+ */
 function checkUrlActive($menu_url, $context_route)
 {
     $cls = '';
@@ -50,7 +49,7 @@ if(Yii::$app->user->can('manager')){
     $items[] = ['label' => 'Клиенты', 'url' => Url::to(['/user/index', 'role' => 'user'])];
 }
 
-if(Yii::$app->user->can('user')){
+if(!Yii::$app->user->can('manager') && Yii::$app->user->can('user')){
     $items[] =  ['label' => 'Мои заказы', 'url' => Url::to(['/orders/index'])];
 }
 

@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $model app\models\Orders */
 
 // проверка прав пользователя
-\app\controllers\OrdersController::checkMyOrder($model->uid);
+\app\controllers\OrdersController::checkMyOrder($model->uid, $model->manager);
 
 $this->title = 'Заказ № ' . $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']];

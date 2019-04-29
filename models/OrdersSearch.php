@@ -62,10 +62,19 @@ class OrdersSearch extends Orders
         // проверим роль пользователя и для КЛИЕНТА выведем только его заказы,
         // а для остальных ролей - все заказы
         $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
-        if($role['user'])
+		
+        if($role['user']){
             $uid = Yii::$app->user->getId();
-        else
+			$manager = $this->manager;
+		}
+        elseif($role['manager']){
+			$manager = Yii::$app->user->getId();
+			$uid = $this->uid;
+		}
+		else{
             $uid = $this->uid;
+			$manager = $this->manager;
+		}
 
         // grid filtering conditions
         $query->andFilterWhere([
@@ -78,7 +87,7 @@ class OrdersSearch extends Orders
             'payed' => $this->payed,
             'order_date' => $this->order_date,
             'update_date' => $this->update_date,
-            'manager' => $this->manager,
+            'manager' => $manager,
             'status' => $this->status,
         ]);
 

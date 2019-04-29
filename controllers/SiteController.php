@@ -66,7 +66,12 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        //return $this->render('index');
+
+        if(!Yii::$app->user->getId())
+            return $this->redirect('/site/login');
+        else
+            return $this->redirect('/orders/index');
     }
 
     /**
@@ -82,6 +87,7 @@ class SiteController extends Controller
 
         $loginModel = new LoginForm();
         $signupModel = new SignupForm();
+
         if ($loginModel->load(Yii::$app->request->post()) && $loginModel->login()) {
             return $this->goBack();
         }

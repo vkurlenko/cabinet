@@ -204,6 +204,15 @@ span.status a{
 	font-size:16px;
 	margin-top:12px;
 }
+
+.log{
+	margin-top: 20px;
+}
+
+.icon-delete{
+	display: inline-block;
+	padding:10px;
+}
 /* /мои заказы */
 
 

@@ -1,16 +1,21 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\OrdersSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
+//\app\controllers\OrdersController::setLog();
 
 $this->title = 'Список заказов';
+
 $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
 if(count($roles) == 1 && $roles['user']){
+    $isUser = true;
     echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
     $this->title = 'Мои заказы';
 }
@@ -22,12 +27,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span></h1>
 
-    <!--<p>
-        <?/*= Html::a('Создать новый заказ', ['create'], ['class' => 'btn btn-success']) */?>
-    </p>-->
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-    <? //debug(\app\controllers\OrdersController::getProducts());?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -38,7 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'id',
                 'label' => '№',
                 'value' => function($data){
-                    return Html::a($data->id, ['update', 'id' => $data->id ]);
+                    return Html::a($data->id, ['view', 'id' => $data->id ]);
                 },
 				'format' => 'html'				
             ],
@@ -86,7 +87,47 @@ $this->params['breadcrumbs'][] = $this->title;
             //'manager',
             //'status',
 
-            ['class' => 'yii\grid\ActionColumn'],
+            [
+                'header'=>'PDF',
+                'format' => 'raw',
+                'value' => function($model, $key, $index, $column) {
+                    return Html::a(
+                        Html::img('/img/pdf.png'),
+                        Url::to(['#', 'id' => $model->id]),
+                        [
+                            'data-id' => $model->id,
+                            'data-pjax'=>true,
+                            'action'=>Url::to(['cart/add']),
+                            //'class'=>'btn btn-success gridview-add-to-cart',
+                        ]
+                    );
+                }
+            ],
+
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'buttons' => [
+                        'delete' => function ($url, $model, $key){
+			                $icon = Html::img('/img/delete.png');
+                            $url = Url::to(['/orders/delete', 'id' => $key]);
+                            $options = [
+                                'data-pjax' => '0',
+                                'data-method' => 'post',
+                                'data-confirm' => 'Удалить заказ?',
+                                'id' => $key,
+                                'class' => 'icon-delete'
+                            ];
+
+                            return Html::a($icon, $url, $options);
+                        },
+                ],
+                'visibleButtons' => [
+                    'view' => \Yii::$app->user->can('manager'),
+                    'update' => \Yii::$app->user->can('manager'),
+                    'delete' => \Yii::$app->user->can('user'),
+                ]
+
+            ]
         ],
     ]); ?>
 
