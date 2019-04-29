@@ -43,6 +43,7 @@ class OrdersController extends Controller
         ];
     }
 
+
     /**
      * Lists all Orders models.
      * @return mixed
