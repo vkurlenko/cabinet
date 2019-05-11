@@ -67,11 +67,11 @@ class SiteController extends Controller
     public function actionIndex()
     {
         //return $this->render('index');
-
         if(!Yii::$app->user->getId())
             return $this->redirect('/site/login');
-        else
-            return $this->redirect('/orders/index');
+        else{
+			return $this->redirect('/orders/index');
+		}
     }
 
     /**
@@ -81,18 +81,19 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+		if (!Yii::$app->user->isGuest) {
+			return $this->goHome();
         }
 
         $loginModel = new LoginForm();
         $signupModel = new SignupForm();
 
         if ($loginModel->load(Yii::$app->request->post()) && $loginModel->login()) {
-            return $this->goBack();
+			return $this->goHome();
         }
 
         $loginModel->password = '';
+		
         return $this->render('login', [
             'loginModel' => $loginModel,
             'signupModel' => $signupModel
@@ -107,6 +108,18 @@ class SiteController extends Controller
         if ($action->id == 'logout') {
             $this->enableCsrfValidation = false;
         }
+
+        if ($action->id == 'login') {
+            // сохраним в сессию адрес предыдущей страницы, если она есть страница торта
+            // в дальнейшем используем для редиректа на эту страницу после авторизации
+            $arr = explode('.', Yii::$app->request->referrer);
+
+            if($arr[count($arr) - 1] == 'html'){
+                $session = Yii::$app->session;
+                $session->set('ref', Yii::$app->request->referrer);
+            }
+        }
+
         return parent::beforeAction($action);
     }
 

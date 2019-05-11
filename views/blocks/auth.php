@@ -41,8 +41,7 @@ foreach($items as $item){
 }
 
 // отправим ID авторизованного пользователя на основной сайт
-if(Yii::$app->user->getId())
+/*if(Yii::$app->user->getId())
 {
-    //echo Yii::$app->user->getId();
-    echo '<iframe style="display:none"  src="http://andreychef/auth.php?temp='.time().'&uid_login='.Yii::$app->user->getId().'"></iframe>';
-}
+    echo '<iframe style="display:block"  src="http://andreychef/auth.php?temp='.time().'&uid_login='.Yii::$app->user->getId().'"></iframe>';
+}*/

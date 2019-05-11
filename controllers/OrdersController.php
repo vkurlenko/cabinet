@@ -13,6 +13,7 @@ use app\models\Status;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Html;
 
 /**
  * OrdersController implements the CRUD actions for Orders model.
@@ -36,7 +37,13 @@ class OrdersController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
+                        'actions' => ['index', 'view', 'create', 'delete'],
                         'roles' => ['admin', 'director', 'manager', 'user']
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['update'],
+                        'roles' => ['admin', 'director', 'manager']
                     ],
                 ],
             ],
@@ -44,7 +51,7 @@ class OrdersController extends Controller
     }
 
 
-    /**
+    /** 
      * Lists all Orders models.
      * @return mixed
      */
@@ -112,8 +119,8 @@ class OrdersController extends Controller
 
         $model->update_date = date('Y-m-d H:i:s');
 		
-		$old_status = $model->status;
-		$model->status = 7; // заказ редактируется!!!
+		$old_status = $model->status; // предыдущий статус заказа
+		$model->status = 7; // установим статус Заказ редактируется!!!
 		if($setstatus){
 			self::setStatus($id, $setstatus);
 		}
@@ -285,6 +292,8 @@ class OrdersController extends Controller
 				
 				if($order->save()){
 					self::setLog($id, $old_status);
+
+					self::doStatusAction($id, $status);
 				}
 			}					
 		}
@@ -347,6 +356,65 @@ class OrdersController extends Controller
             return $this->render('/blocks/log', compact('logs'));
         }
 
-        return false;
+        return true;
 	}
+
+
+    /**
+     * Действия при измененеии статуса заказа
+     *
+     * @param null $order_id - id заказа на сайте
+     * @param null $status - установленный статус заказа
+     *
+     * @return bool
+     */
+    protected function doStatusAction($order_id = null, $status = null)
+    {
+        if($order_id && $status){
+            switch($status){
+                case 1 :
+                    // отправить ссылку на оплату клиенту
+                    $link = self::getPayLink($order_id);
+                    $order = Orders::findOne($order_id);
+                    $user = User::findOne($order->uid);
+
+                    Yii::$app
+                        ->mailer
+                        ->compose(
+                            ['html' => 'payLink-html', 'text' => 'payLink-html'],
+                            ['user' => $user, 'link' => Html::a($link, $link)]
+                        )
+                        ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                        ->setTo($user->email)
+                        ->setSubject('Ваша ссылка для оплаты ')
+                        ->send();
+
+                    break;
+
+                default: break;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Генерация ссылки на оплату
+     *
+     * @param $order_id - id заказа
+     *
+     * @return string - ссылка
+     */
+    protected function getPayLink($order_id = null)
+    {
+        $link = '';
+
+        if($order_id){
+            $link = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+        }
+
+        return $link;
+    }
+
+
 }

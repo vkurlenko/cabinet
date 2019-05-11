@@ -31,7 +31,7 @@ foreach($arr as $k => $v){
 		<?php $form = ActiveForm::begin(); ?>
 
 		<?= $form->field($model, 'uid')
-            ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите клиента'])
+            ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите заказчика'])
             ->hint('Только зарегистрированные клиенты') ?>
 		
 		<div class="form-group">

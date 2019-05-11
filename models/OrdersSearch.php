@@ -47,9 +47,16 @@ class OrdersSearch extends Orders
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort'=>[
+                'defaultOrder'=>[
+                    'id'=>SORT_DESC
+                ]
+            ]
         ]);
 
         $this->load($params);
+		
+		//debug($params); die;
 
 
 
@@ -75,6 +82,12 @@ class OrdersSearch extends Orders
             $uid = $this->uid;
 			$manager = $this->manager;
 		}
+		
+		// текущие/история заказов
+		if(isset($params['complete']))
+			$status = ['in', 'status', [20, 30]];
+		else
+			$status = ['not in', 'status', [20, 30]];
 
         // grid filtering conditions
         $query->andFilterWhere([
@@ -88,13 +101,14 @@ class OrdersSearch extends Orders
             'order_date' => $this->order_date,
             'update_date' => $this->update_date,
             'manager' => $manager,
-            'status' => $this->status,
+            //'status' => $status //$this->status,
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'filling', $this->filling])
             ->andFilterWhere(['like', 'description', $this->description])
-            ->andFilterWhere(['like', 'address', $this->address]);
+            ->andFilterWhere(['like', 'address', $this->address])
+			->andFilterWhere($status);
 
         return $dataProvider;
     }

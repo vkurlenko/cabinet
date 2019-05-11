@@ -7,7 +7,7 @@ if(!$user){
 //debug($user);
 ?>
 <h1>Мои данные</h1>
-<table class="table table-striped table-bordered user-info">
+<table class="table table-striped table-bordered user-info garamond">
     <tr>
         <td><?=$user['username']?></td>
         <td><?=$user['phone']?></td>

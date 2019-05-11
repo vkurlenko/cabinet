@@ -1,8 +1,10 @@
 <?php
-
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\GridView;
+
+//debug(Yii::$app->request->get());
+
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\OrdersSearch */
@@ -16,6 +18,7 @@ $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
 
 if(count($roles) == 1 && $roles['user']){
     $isUser = true;
+	// вывод данных клиента
     echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
     $this->title = 'Мои заказы';
 }
@@ -25,10 +28,24 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="orders-index">
 
-    <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span></h1>
-
+    <h1><?= Html::encode($this->title) ?>
+    <?php
+    if(Yii::$app->user->can('manager')):
+    ?>
+    <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
+    <?php
+    endif;
+    ?></h1>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+	
+	<?php
+    // панель Текущие заказы/История
+	if($isUser)
+       echo $this->render('/blocks/orders_nav');
+	?>
+
+
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -59,14 +76,15 @@ $this->params['breadcrumbs'][] = $this->title;
                     return $stats[$data->status];
                 }
             ],
-            /*[
+            [
                 'attribute' => 'uid',
                 'value' => function($data){
 					$users = \app\controllers\OrdersController::getPersons('user');
                     return Html::a($users[$data->uid], ['user/update?id='.$data->uid]);
                 },
+                'visible'=> $isUser ? false : true,
 				'format' => 'html'
-            ],*/
+            ],
 			'deliv_name',
             [
                 'attribute' => 'manager',
@@ -107,24 +125,29 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => 'yii\grid\ActionColumn',
                 'buttons' => [
-                        'delete' => function ($url, $model, $key){
-			                $icon = Html::img('/img/delete.png');
-                            $url = Url::to(['/orders/delete', 'id' => $key]);
-                            $options = [
-                                'data-pjax' => '0',
-                                'data-method' => 'post',
-                                'data-confirm' => 'Удалить заказ?',
-                                'id' => $key,
-                                'class' => 'icon-delete'
-                            ];
+                    'delete' => function ($url, $model, $key){
+                        $icon = Html::img('/img/delete.png');
+                        $url = Url::to(['/orders/delete', 'id' => $key]);
+                        $options = [
+                            'data-pjax' => '0',
+                            'data-method' => 'post',
+                            'data-confirm' => 'Удалить заказ?',
+                            'id' => $key,
+                            'class' => 'icon-delete'
+                        ];
 
-                            return Html::a($icon, $url, $options);
-                        },
+                        return Html::a($icon, $url, $options);
+                    },
                 ],
                 'visibleButtons' => [
                     'view' => \Yii::$app->user->can('manager'),
                     'update' => \Yii::$app->user->can('manager'),
-                    'delete' => \Yii::$app->user->can('user'),
+                    'delete' => function($model){
+                            if(\Yii::$app->user->can('user') && $model->status == 0 )
+                                return true;
+                            else
+                                return false;
+                    }
                 ]
 
             ]

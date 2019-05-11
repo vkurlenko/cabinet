@@ -25,10 +25,10 @@ class AppAsset extends AssetBundle
         'https://fonts.googleapis.com/css?family=Roboto:400,300,700&subset=latin,cyrillic',
         'https://fonts.googleapis.com/css?family=EB+Garamond&subset=latin,cyrillic',
         'css/style.css',
-
-
     ];
     public $js = [
+        'https://3dsec.sberbank.ru/demopayment/docsite/assets/js/ipay.js',
+        'js/script.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',

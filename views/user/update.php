@@ -8,7 +8,13 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 
-$this->title = 'Изменить данные пользователя: ' . $model->username;
+if(Yii::$app->user->can('manager')){
+    $title = 'Изменить данные пользователя: ' . $model->username;
+}
+else
+    $title = 'Изменить мои данные';
+
+$this->title = $title;
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Изменить';

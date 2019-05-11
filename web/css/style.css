@@ -2,6 +2,10 @@
     width:1169px;
     /*height:1000px;*/
 }
+
+.ext h1{
+	font-weight: bold;
+}
 .logo{
     border-left:1px solid #000;
     border-right:1px solid #000;
@@ -64,6 +68,11 @@
 
 .menu a.active{
 	color:#c3325f;
+}
+
+.auth-title{
+	font-size: 26px;
+	padding:15px;
 }
 
 .auth a, .auth span, .auth button{
@@ -187,6 +196,7 @@ span.sum{
 .ext-btn.gray{
 	background: #AAAAAA;
 }
+
 /* /кнопки */
 
 /* мои заказы */
@@ -212,6 +222,22 @@ span.status a{
 .icon-delete{
 	display: inline-block;
 	padding:10px;
+}
+
+.orders-nav{
+	/*padding:20px 0;*/
+}
+
+.orders-nav a{
+	display: inline-block;
+	padding: 20px 20px 20px 0;
+	color: #c33;
+	text-decoration: underline;
+}
+
+.orders-nav a.active{
+	font-weight: bold;
+	text-decoration: none;
 }
 /* /мои заказы */
 

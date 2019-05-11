@@ -76,7 +76,7 @@ class Orders extends \yii\db\ActiveRecord
     public function getStatus()
     {
         return [
-            0 => 'Нет статуса',
+            0 => 'Новый',
             1 => 'Выставлен счет',
             2 => 'Ожидает подтверждения',
             3 => 'Ожидает оплаты',
@@ -86,8 +86,8 @@ class Orders extends \yii\db\ActiveRecord
             7 => 'Редактируется',
 						
 			10 => 'Создан',
-			20 => 'Выполнен',
-			30 => 'Удален'
+			20 => 'Выполнен', // complete
+			30 => 'Удален'	// complete
         ];
     }
 

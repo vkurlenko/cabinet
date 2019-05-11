@@ -9,6 +9,11 @@ use yii\widgets\DetailView;
 // проверка прав пользователя
 \app\controllers\OrdersController::checkMyOrder($model->uid, $model->manager);
 
+$roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+if(count($roles) == 1 && $roles['user'])
+    $isUser = true;
+
 
 
 $this->title = 'Заказ №'.$model->id;
@@ -82,20 +87,45 @@ $products = \app\controllers\OrdersController::getProducts();
 				
 			</table>
 			
-			<div>				
-				<?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
-				<?= Html::a('Выставить счет', ['update', 'id' => $model->id], ['class' => 'ext-btn red']) ?>
-				<div></div>
-				<?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
-				<?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
-				<div></div>
-				<?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
-					'class' => 'ext-btn black',
-					'data' => [
-						'confirm' => 'Вы действительно хотите удалить заказ?',
-						'method' => 'post',
-					],
-				]) ?>			
+			<div>
+
+                <?php
+                if($isUser):
+
+                    //echo \app\controllers\PayController::getPayLink($model->id, $model->cost);
+                ?>
+                    <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
+
+                    <?php
+                    // если статус Выставлен счет, то кнопка оплаты
+                    if($model->status === 1):
+                    ?>
+                    <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
+                    <?php
+                    endif;
+                    ?>
+
+                <?php
+                else:
+                ?>
+                    <?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
+                    <?= Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) ?>
+                    <div></div>
+                    <?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
+                    <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
+                    <div></div>
+                    <?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
+                        'class' => 'ext-btn black',
+                        'data' => [
+                            'confirm' => 'Вы действительно хотите удалить заказ?',
+                            'method' => 'post',
+                        ],
+                    ]) ?>
+                <?php
+                endif;
+                ?>
+
+
 			</div>		
 		</div>
 		
@@ -109,8 +139,55 @@ $products = \app\controllers\OrdersController::getProducts();
 	<div class="log">
 		<?=\app\controllers\OrdersController::getLog($model->id);?>
 	</div>
-	
-	
+
+    сбер
+    <?php
+    /*$order_id = 123;
+    $sum  = 1000;
+
+    $vars = array();
+    $vars['userName'] = 'andreychef-api';
+    $vars['password'] = 'andreychef';
+    $vars['password'] = 'andreychef';
+
+    // ID заказа в магазине.
+    $vars['orderNumber'] = $order_id;
+
+    // Сумма заказа в копейках.
+    $vars['amount'] = $sum * 100;
+
+    // URL куда клиент вернется в случае успешной оплаты.
+    $vars['returnUrl'] = 'http://andreychef.com/success/';
+
+    // URL куда клиент вернется в случае ошибки.
+    $vars['failUrl'] = 'http://andreychef.com/error/';
+
+    // Описание заказа, не более 24 символов, запрещены % + \r \n
+    $vars['description'] = 'Заказ №' . $order_id . ' на andreychef.com';
+
+    $ch = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do?' . http_build_query($vars));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    $res = curl_exec($ch);
+    curl_close($ch);
+
+    $res = json_decode($res, JSON_OBJECT_AS_ARRAY);
+    if (empty($res['orderId'])){
+        // Возникла ошибка:
+        echo $res['errorMessage'];
+    } else {
+        // Успех:
+        // Тут нужно сохранить ID платежа в своей БД - $res['orderId']
+
+        // Перенаправление клиента на страницу оплаты.
+        //header('Location: ' . $res['formUrl'], true);
+
+        // Или на JS
+        echo '<script>document.location.href = "' . $res['formUrl'] . '"</script>';
+    }*/
+    ?>
+
 
     <? /*=DetailView::widget([
         'model' => $model,

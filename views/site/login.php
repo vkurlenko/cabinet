@@ -10,8 +10,11 @@ use yii\bootstrap\ActiveForm;
 $this->title = 'Авторизация';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<!-- Регистрация -->
+
 <div class="row">
+	<p class="auth-title garamond">Для продолжения заказа зарегистрируйтесь или авторизуйтесь на сайте</p>
+
+<!-- Регистрация -->
     <div class="site-signup col-md-6">
         <h1><?= Html::encode('Регистрация') ?></h1>
        <!-- <p>Please fill out the following fields to signup:</p>-->
@@ -27,13 +30,14 @@ $this->params['breadcrumbs'][] = $this->title;
                         'action' => '/site/signup'
                 ]); ?>
 
-                <?= $form->field($signupModel, 'username')->textInput(['autofocus' => true])->label('Ваше имя') ?>
-                <?= $form->field($signupModel, 'email')->label('E-mail') ?>
-                <?= $form->field($signupModel, 'phone')->label('Телефон') ?>
+                <?= $form->field($signupModel, 'username')->textInput(['autofocus' => false])->label('Ваше имя') ?>
+				<?= $form->field($signupModel, 'phone')->label('Телефон') ?>
+                <?= $form->field($signupModel, 'email')->label('E-mail') ?>                
                 <?= $form->field($signupModel, 'password')->passwordInput()->label('Введите пароль') ?>
                 <div class="form-group">
                     <div class="" style="text-align: center">
-                    <?= Html::submitButton('Зарегистрироваться', ['class' => 'btn btn-primary', 'name' => 'signup-button']) ?>
+					
+                    <?= Html::submitButton('Зарегистрироваться', ['class' => 'ext-btn', 'name' => 'signup-button']) ?>
                     </div>
                 </div>
                 <?php ActiveForm::end(); ?>
@@ -71,7 +75,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <div class="form-group">
             <div class="" style="text-align: center">
-                <?= Html::submitButton('Войти', ['class' => 'btn btn-primary', 'name' => 'login-button']) ?>
+                <?= Html::submitButton('Войти', ['class' => 'ext-btn', 'name' => 'login-button']) ?>
             </div>
         </div>
 

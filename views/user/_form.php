@@ -25,13 +25,14 @@ $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->as
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'username')->textInput() ?>
-    <?= $form->field($model, 'email')->textInput() ?>
+
     <?= $form->field($model, 'phone')->textInput() ?>
 
     <?php
     // если пользователь == клиент, то скроем поля редактирования Активности и Роли
     if(Yii::$app->user->can('manager')):
     ?>
+        <?= $form->field($model, 'email')->textInput() ?>
         <?= $form->field($model, 'status')->dropDownList([1 => 'активен', 0 => 'отключен'], ['options' => [$model->status => ['selected' => true]]]) ?>
         <?= $form->field($model, 'role')->dropDownList(arrDropDownRoles(), ['options' => [$role['item_name'] => ['selected' => true]]]) ?>
     <?php

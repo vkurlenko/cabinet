@@ -34,7 +34,13 @@ class UserController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
+                        'actions' => ['update'],
                         'roles' => ['admin', 'director', 'manager', 'user']
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'view', 'create'],
+                        'roles' => ['admin', 'director', 'manager']
                     ],
                 ],
             ],
@@ -137,8 +143,13 @@ class UserController extends Controller
                 $model->generateAuthKey();
             }
 
-            if($model->save())
-                return $this->redirect(['view', 'id' => $model->id]);
+            if($model->save()){
+                if(Yii::$app->user->can('manager'))
+                    return $this->redirect(['view', 'id' => $model->id]);
+                else
+                    return $this->redirect(['orders/index']);
+            }
+
         }
 
         return $this->render('update', [

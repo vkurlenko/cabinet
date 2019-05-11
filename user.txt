@@ -1,0 +1,3 @@
+Yii::$app->user->getId() - получить ID текущего пользователя
+Yii::$app->authManager->getRolesByUser($user_id) - получить все роли пользователя в виде массива по его ID
+Yii::$app->user->can('admin') - проверка роли текущего пользователя

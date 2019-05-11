@@ -63,6 +63,17 @@ class SignupForm extends Model
                 $role->save(false);
             }
 
+            Yii::$app
+                ->mailer
+                ->compose(
+                    ['html' => 'signup-html', 'text' => 'signup-html'],
+                    ['user' => $user]
+                )
+                ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                ->setTo($this->email)
+                ->setSubject('Вы зарегистрированы ' . Yii::$app->name)
+                ->send();
+
             return $user;
         }
         else
