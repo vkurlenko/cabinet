@@ -46,11 +46,11 @@ $config = [
             // for the mailer to send real emails.
             'useFileTransport' => false,
             'transport' => [
-                'class' => 'Swift_SmtpTransport',
-                'host' => 'mail.nic.ru',
-                'username' => 'site@promotionsales.ru',
-                'password' => 'Id07inWpL34jl4BbIcjB',
-                'port' => '465',
+                'class'     => 'Swift_SmtpTransport',
+                'host'      => 'mail.nic.ru',
+                'username'  => 'site@promotionsales.ru',
+                'password'  => 'Id07inWpL34jl4BbIcjB',
+                'port'      => '465',
                 'encryption' => 'ssl',
             ],
         ],

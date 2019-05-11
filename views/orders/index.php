@@ -14,13 +14,12 @@ use yii\grid\GridView;
 
 $this->title = 'Список заказов';
 
-$roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
 
-if(count($roles) == 1 && $roles['user']){
-    $isUser = true;
-	// вывод данных клиента
-    echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
+if(\app\controllers\UserController::isClient()){
     $this->title = 'Мои заказы';
+
+    // вывод данных клиента
+    echo \app\controllers\UserController::renderUserInfo(Yii::$app->user->getId());
 }
 
 $this->params['breadcrumbs'][] = $this->title;
@@ -30,7 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?>
     <?php
-    if(Yii::$app->user->can('manager')):
+    if(Yii::$app->user->can('user')):
     ?>
     <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
     <?php
@@ -41,7 +40,7 @@ $this->params['breadcrumbs'][] = $this->title;
 	
 	<?php
     // панель Текущие заказы/История
-	if($isUser)
+	//if($isUser)
        echo $this->render('/blocks/orders_nav');
 	?>
 
@@ -56,7 +55,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'id',
                 'label' => '№',
                 'value' => function($data){
-                    return Html::a($data->id, ['view', 'id' => $data->id ]);
+                    if(!\app\controllers\UserController::isClient())
+                        return Html::a($data->id, ['view', 'id' => $data->id ]);
+                    else
+                        return $data->id;
                 },
 				'format' => 'html'				
             ],
@@ -68,13 +70,20 @@ $this->params['breadcrumbs'][] = $this->title;
                     return $products[$data->name]['name'];
                 }
             ],
-			'cost',
+            [
+                'attribute' => 'cost',
+                'value' => function($data){
+
+                    return $data->cost ? $data->cost : 'не определена';
+                }
+            ],
             [
                 'attribute' => 'status',
                 'value' => function($data){
                     $stats = \app\models\Orders::getStatus();
-                    return $stats[$data->status];
-                }
+                    return '<strong>'.$stats[$data->status].'</strong>';
+                },
+                'format' => 'html'
             ],
             [
                 'attribute' => 'uid',

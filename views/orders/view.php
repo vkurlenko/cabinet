@@ -91,9 +91,8 @@ $products = \app\controllers\OrdersController::getProducts();
 
                 <?php
                 if($isUser):
-
-                    //echo \app\controllers\PayController::getPayLink($model->id, $model->cost);
-                ?>
+                    // если клиент
+                    ?>
                     <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
 
                     <?php
@@ -102,18 +101,29 @@ $products = \app\controllers\OrdersController::getProducts();
                     ?>
                     <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
                     <?php
+                    else:
+                        echo '<p class="alert alert-danger">Оплата невозможна, обратитесь к менеджеру</p>';
                     endif;
                     ?>
 
                 <?php
                 else:
-                ?>
-                    <?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
-                    <?= Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) ?>
-                    <div></div>
-                    <?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
-                    <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
-                    <div></div>
+                    if($model->status == 5){
+                        // если статус заказа "Оплачен"
+                        echo Html::a('Доплата к заказу', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn red']);
+                    }
+                    else{
+                        ?>
+                        <?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
+                        <?= Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) ?>
+                        <div></div>
+                        <?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
+                        <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
+                        <div></div>
+                        <?= Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']) ?>
+                        <?php
+                    }
+                    ?>
                     <?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
                         'class' => 'ext-btn black',
                         'data' => [

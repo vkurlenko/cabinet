@@ -61,6 +61,7 @@ class PaySearch extends Pay
             'id' => $this->id,
             'orderNumber' => $this->orderNumber,
             'orderId' => $this->orderId,
+            'amount' => $this->amount,
             'errorCode' => $this->errorCode,
             'datetime' => $this->datetime,
         ]);

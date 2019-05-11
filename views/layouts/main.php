@@ -76,11 +76,15 @@ AppAsset::register($this);
         <div class="col-md-12 garamond">
             <?php
             //debug($_COOKIE);
-            /*$allflash=\Yii::$app->session->getAllFlashes();
-            debug($allflash);
+            // //debug($allflash);
+
+            $allflash=\Yii::$app->session->getAllFlashes();
+
+            $title = \app\controllers\SiteController::alertTitle();
+
             foreach($allflash as $k => $v){
-                echo '<div class="alert alert-'.$k.'">'.$v.'</div>';
-            }*/
+                echo '<p class="alert alert-'.$k.'"><strong>'.$title[$k].'</strong> '.$v.'</p>';
+            }
             ?>
             <?=$content?>
             <?

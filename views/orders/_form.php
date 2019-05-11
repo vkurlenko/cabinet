@@ -19,7 +19,8 @@ $datepicker = [
     ]
 ];
 
-//$products = dropDownList(\app\controllers\OrdersController::getProducts();
+$isClient = \app\controllers\UserController::isClient();
+
 $arr = \app\controllers\OrdersController::getProducts();
 foreach($arr as $k => $v){
 	$products[$k] = $v['name'];
@@ -30,6 +31,11 @@ foreach($arr as $k => $v){
 	<div class="col-md-8">
 		<?php $form = ActiveForm::begin(); ?>
 
+        <?php
+        /* только для менеджера */
+        if(!$isClient):
+        ?>
+
 		<?= $form->field($model, 'uid')
             ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите заказчика'])
             ->hint('Только зарегистрированные клиенты') ?>
@@ -38,6 +44,22 @@ foreach($arr as $k => $v){
 			<label class="control-label">E-mail</label>
 			<span><?=\app\controllers\OrdersController::getUserEmail($model->uid)?></span>
 		</div>
+
+        <?php
+        /* /только для менеджера */
+
+        /* только для клиента */
+        else:
+            ?>
+
+            <?= $form->field($model, 'uid')->hiddenInput(['value' => Yii::$app->user->getId()])->label('') ?>
+
+            <?= $form->field($model, 'email')->hiddenInput(['value' => \app\controllers\OrdersController::getUserEmail(Yii::$app->user->getId())])->label('') ?>
+
+        <?php
+        endif;
+        /* /только для клиента */
+        ?>
 		
 		<?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
@@ -49,24 +71,29 @@ foreach($arr as $k => $v){
 
 		<?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 
-        <?= $form->field($model, 'tasting_set')->checkbox([]);//dropDownList([0 => 'нет', 1 => 'да'], ['prompt' => '---'])?>
+        <?= $form->field($model, 'tasting_set')->checkbox([]);?>
 
-		<?= $form->field($model, 'deliv_date')->textInput();//widget(\kartik\date\DatePicker::className(), $datepicker); ?>
+		<?= $form->field($model, 'deliv_date')->widget(DatePicker::className(), $datepicker); ?>
 
 		<?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
 
-		<?= $form->field($model, 'cost')->textInput() ?>
+        <?php
+        /* только для менеджера */
+        if(!$isClient):
+        ?>
 
-		<?= $form->field($model, 'payed')->textInput() ?>
+            <?= $form->field($model, 'cost')->textInput() ?>
 
-		<?/*= $form->field($model, 'order_date')->textInput() */?>
+            <?= $form->field($model, 'payed')->textInput() ?>
 
-		<?/*= $form->field($model, 'update_date')->textInput() */?>
+            <?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера']) ?>
 
-		<?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера']) ?>
+            <?= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) ?>
 
-		
-		<?= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) ?>
+        <?php
+        endif;
+        /* /только для менеджера */
+        ?>
 
 		<div class="form-group">
 			<?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>

@@ -9,6 +9,8 @@ use yii\grid\GridView;
 
 $this->title = 'Pays';
 $this->params['breadcrumbs'][] = $this->title;
+
+
 ?>
 <div class="pay-index">
 
@@ -29,6 +31,27 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'orderNumber',
             'orderId',
+            'amount',
+            [
+                'header'=>'Статус',
+                'format' => 'raw',
+                'value' => function($model, $key, $index, $column) {
+
+                    $orderStatus = array(
+                        0 => 'Заказ зарегистрирован, но не оплачен',
+                        1 => 'Предавторизованная сумма захолдирована (для двухстадийных платежей)',
+                        2 => 'Проведена полная авторизация суммы заказа',
+                        3 => 'Авторизация отменена',
+                        4 => 'По транзакции была проведена операция возврата',
+                        5 => 'Инициирована авторизация через ACS банка-эмитента',
+                        6 => 'Авторизация отклонена',
+                    );
+
+                    $res = \app\controllers\PayController::getPayStatus($model->orderId);
+                    return $orderStatus[$res['orderStatus']];
+
+                }
+            ],
             'errorCode',
             'errorMessage:ntext',
             //'datetime',

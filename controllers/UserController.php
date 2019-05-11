@@ -236,6 +236,16 @@ class UserController extends Controller
 
     }
 
+    public function isClient()
+    {
+        $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+        if(count($roles) == 1 && $roles['user'])
+            return true;
+        else
+            return false;
+    }
+
     /**
      * Finds the User model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

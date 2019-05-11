@@ -46,6 +46,7 @@ class Pay extends \yii\db\ActiveRecord
             'id' => 'ID',
             'orderNumber' => 'Order Number',
             'orderId' => 'Order ID',
+            'amount' => 'Сумма',
             'errorCode' => 'Error Code',
             'errorMessage' => 'Error Message',
             'datetime' => 'Datetime',

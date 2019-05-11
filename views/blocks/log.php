@@ -19,16 +19,14 @@ if($logs){
             <th>Кто изменил</th>
         </tr>
     <?php
-
-
-
     foreach($logs as $log){
+        $userRole = \app\controllers\UserController::getUserRole($log['uid']);
         ?>
         <tr>
             <td><?=$log['datetime']?></td>
             <td><?=$status[$log['old_status']]?></td>
             <td><?=$status[$log['new_status']]?></td>
-            <td><?=$users[$log['uid']]['username']?></td>
+            <td><?=$users[$log['uid']]['username'].' ('.$userRole.')'?></td>
         </tr>
 
         <?php

@@ -263,4 +263,15 @@ class SiteController extends Controller
 
           return $arr;
       }
+
+
+      public static function alertTitle()
+      {
+          return [
+              'danger' => 'Ошибка:',
+              'success' => '',
+              'primary' => 'Информация:',
+              'warning' => 'Внимание:',
+          ];
+      }
 }

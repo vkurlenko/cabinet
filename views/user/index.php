@@ -22,6 +22,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
+    <?php
+    // панель Текущие заказы/История
+    if(!UserController::isClient())
+        echo $this->render('/blocks/users_nav');
+    ?>
+
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         //'filterModel' => $searchModel,

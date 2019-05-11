@@ -70,10 +70,24 @@ class UserSearch extends User
         }
 
 
+        if(isset($params['active'])){
+            // только активные клиенты (у кого заказы со статусом < 20, т.е. до "Выполнен")
+            $active_users = Orders::find()->select('uid')->where(['<', 'status', 20])->distinct()->asArray()->all();
+
+            $arr = [];
+            foreach($active_users as $u)
+               $arr[] = $u['uid'];
+
+            $query->andFilterWhere(['in', 'id', $arr]);
+        }
+        else
+            // все клиенты
+            $query->andFilterWhere(['id' => $this->id]);
+
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
+            //'id' => $this->id,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -104,8 +118,6 @@ class UserSearch extends User
         elseif(Yii::$app->user->can('manager')){
             $query->andFilterWhere(['like', AuthAssignment::tableName().'.item_name', 'user']);
         }
-
-
 
         return $dataProvider;
     }
