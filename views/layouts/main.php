@@ -46,12 +46,7 @@ AppAsset::register($this);
 
 
             <div class="head_search_frm">
-                <div class="search_form">
-                    <form method="post" action="/search/">
-                        <input type="text" name="SEARCH_INP" class="inp" value="">
-                        <input type="submit" name="SEARCH_BTN" class="btn" value="Найти">
-                    </form>
-                </div>
+                <?= $this->render('/blocks/search.php');?>
             </div>
         </div>
 
@@ -74,54 +69,14 @@ AppAsset::register($this);
 
     <div class="row">
         <div class="col-md-12 garamond">
-            <?php
-            //debug($_COOKIE);
-            // //debug($allflash);
+            <?= $this->render('/blocks/flashes');?>
 
-            $allflash=\Yii::$app->session->getAllFlashes();
-
-            $title = \app\controllers\SiteController::alertTitle();
-
-            foreach($allflash as $k => $v){
-                echo '<p class="alert alert-'.$k.'"><strong>'.$title[$k].'</strong> '.$v.'</p>';
-            }
-            ?>
             <?=$content?>
-            <?
-            /*debug(Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId()));
-            echo Yii::$app->user->can('manager');*/
-            /*debug(app\controllers\AppController::getRole());
-            echo Yii::$app->user->can('admin');*/
-            ?>
         </div>
     </div>
 
-    <footer class="footer-block">
-        <div class="">
-            footer
-            <?php
-            // отправим ID авторизованного пользователя на основной сайт
-            if(Yii::$app->user->getId())
-            {
-                echo '<iframe style="display: none"  src="'.Yii::$app->params['mainDomain'].'/auth.php?temp='.time().'&uid_login='.Yii::$app->user->getId().'"></iframe>';
-
-                // редирект на предыдущую перед авторизацией страницу
-                $session = Yii::$app->session;
-                //echo $session->get('ref'); die;
-                if($session->has('ref')){
-                    $ref = $session->get('ref');
-                    $session->remove('ref');
-                    ?>
-                    <script>
-                        //alert('ref='+'<?=$ref?>');
-                        window.document.location.href = '<?=$ref?>';
-                    </script>
-                    <?php
-                }
-            }
-
-            ?>
-        </div>
+    <footer class="footer">
+        <?= $this->render('/blocks/footer');?>
     </footer>
 
 </div>

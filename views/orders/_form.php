@@ -21,10 +21,15 @@ $datepicker = [
 
 $isClient = \app\controllers\UserController::isClient();
 
-$arr = \app\controllers\OrdersController::getProducts();
-foreach($arr as $k => $v){
-	$products[$k] = $v['name'];
+$products = \app\controllers\OrdersController::getProductsGroped();
+
+
+if($uid && !$isClient){
+    $model->uid = $uid;
+    $model->manager = Yii::$app->user->getId();
 }
+
+
 ?>
 
 <div class="orders-form row">

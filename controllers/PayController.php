@@ -130,10 +130,11 @@ class PayController extends Controller
             if($order){
 
                 // сумма к оплате
-                $sum = $order->cost;
+                /*$sum = $order->cost;
 
                 if($order->payed)
-                    $sum = $sum - $order->payed;
+                    $sum = $sum - $order->payed;*/
+                $sum = \app\controllers\OrdersController::getOrderSum($order_id);
 
                 // создадим новую запись в таблице платежей (транзакций)
                 $pay = new Pay();

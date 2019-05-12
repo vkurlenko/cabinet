@@ -8,6 +8,9 @@ use yii\helpers\Html;
 $this->title = 'Новый заказ';
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
+
+//if(Yii::$app->request->get('uid'))
+$uid = Yii::$app->request->get('uid') ? Yii::$app->request->get('uid') : null;
 ?>
 <div class="orders-create">
 
@@ -15,6 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'uid' => $uid,
     ]) ?>
 
 </div>

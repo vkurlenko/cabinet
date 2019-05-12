@@ -147,9 +147,8 @@ class UserController extends Controller
                 if(Yii::$app->user->can('manager'))
                     return $this->redirect(['view', 'id' => $model->id]);
                 else
-                    return $this->redirect(['orders/index']);
+                    return $this->redirect(['user/index']);
             }
-
         }
 
         return $this->render('update', [
@@ -227,20 +226,45 @@ class UserController extends Controller
 		return $user;
 	}
 
-	public function renderUserInfo($uid = null)
+    /**
+     * Вывод блока информации о текущем пользоватле (только для клиента)
+     * @param null $uid
+     * @return string
+     */
+    public function renderUserInfo($uid = null)
     {
         if($uid){
             $user = User::find()->where(['id' => $uid])->asArray()->one();
             return $this->render('/blocks/userinfo', compact('user'));
         }
-
     }
 
+
+    /**
+     * Является ли текущий пользователь клиентом
+     *
+     * @return bool
+     */
     public function isClient()
     {
         $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
 
         if(count($roles) == 1 && $roles['user'])
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * Является ли текущий пользователь менеджером
+     *
+     * @return bool
+     */
+    public function isManager()
+    {
+        $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+        if(count($roles) == 1 && $roles['manager'])
             return true;
         else
             return false;

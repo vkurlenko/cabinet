@@ -1,4 +1,4 @@
-<a class="dialogbox" id="call_order_link" rel="680x340" href="/templates/forms/call_order.php">Заказать звонок</a>
+<a class="dialogbox" id="call_order_link" rel="680x340" href="<?=Yii::$app->params['mainDomain']?>/templates/forms/call_order.php">Заказать звонок</a>
 
 <div>
     Заказ торта с новым дизайном, отправить заявку по WhatsApp 24/7<br>

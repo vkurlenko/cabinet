@@ -73,8 +73,8 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'cost',
                 'value' => function($data){
-
-                    return $data->cost ? $data->cost : 'не определена';
+                    $sum = \app\controllers\OrdersController::getOrderCost($data->id);
+                    return $sum ? $sum : 'не определена';
                 }
             ],
             [

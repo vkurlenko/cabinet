@@ -25,6 +25,12 @@ $status = $model::getStatus()[$model->status];
 $fills = \app\controllers\OrdersController::getFills();
 $products = \app\controllers\OrdersController::getProducts();
 
+/*$sum = (int)$model->cost - (int)$model->payed;
+
+$sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*/
+//$sum = \app\controllers\OrdersController::getOrderSum($model->id);
+
+
 ?>
 <div class="orders-view">
 
@@ -76,13 +82,13 @@ $products = \app\controllers\OrdersController::getProducts();
                     <td><?=$model->tasting_set ? 'Да' : 'Нет';?></td>
                 </tr>
 				<tr>
-					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=$model->cost?></span> <span class="currency">руб.</span></td>					
+					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=\app\controllers\OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
 				</tr>
 				<tr>
 					<td colspan=2 class="cost-title bg-gray"><div>Ранее оплачено: <span class="sum"><?=$model->payed?></span> <span class="currency">руб.</span></div></td>					
 				</tr>
 				<tr>
-					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?=((int)$model->cost - (int)$model->payed)?></span> <span class="currency">руб.</span></div></td>					
+					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?=\app\controllers\OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
 				</tr>
 				
 			</table>

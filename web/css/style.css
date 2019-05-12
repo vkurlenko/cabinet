@@ -1,10 +1,20 @@
 .ext{
     width:1169px;
-    /*height:1000px;*/
+    height:1000px !important;
+	height: 100%;
 }
 
 .ext h1{
 	font-weight: bold;
+}
+
+.ext.container{
+	border:0;
+}
+
+.ext > .row{
+	border-left: 1px solid #000;
+	border-right: 1px solid #000;
 }
 .logo{
     border-left:1px solid #000;
@@ -50,7 +60,7 @@
 }
 
 .addr{
-    margin-top: 18px;
+    margin-top: 17px;
     font-size: 18px;
 }
 
@@ -86,6 +96,11 @@
 
 .auth span{
     text-decoration: none;
+}
+
+.auth span.role{
+	position: absolute;
+	top: -20px;
 }
 
 .auth a:hover, .auth button:hover{
@@ -245,7 +260,9 @@ span.status a{
 /* /мои заказы */
 
 
-.footer-block{
-    border-bottom: 1px solid #000;
+.footer{
+    /*border-bottom: 1px solid #000;*/
+	width: 100%;
+	margin: 0;
 }
 

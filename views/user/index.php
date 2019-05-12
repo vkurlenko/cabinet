@@ -3,18 +3,21 @@
 use yii\helpers\Html;
 use yii\grid\GridView;
 use app\controllers\UserController;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\UserSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Пользователи';
+$this->title = UserController::isManager() ? 'Клиенты' : 'Пользователи';
 $this->params['breadcrumbs'][] = $this->title;
+
+$newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользователь';
 
 ?>
 <div class="user-index">
 
-    <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Новый пользователь', ['create'], ['class' => 'garamond']) ?></span></h1>
+    <h1><?= Html::encode($this->title) ?><span class="status"><?= Html::a('Новый '.$newUserTitle, ['create'], ['class' => 'garamond']) ?></span></h1>
 
     <!--<p>
         <?/*= Html::a('Новый пользователь', ['create'], ['class' => 'btn btn-success']) */?>
@@ -73,6 +76,13 @@ $this->params['breadcrumbs'][] = $this->title;
                     return date('d-m-Y', $data->updated_at);
                 },
                 'format' => 'html'
+            ],
+            [
+                'header'=>'',
+                'format' => 'raw',
+                'value' => function($model, $key, $index, $column) {
+                    return Html::a('заказ от имени клиента', Url::to(['/orders/create', 'uid' => $model->id]), ['style' => 'color: #c33']);
+                }
             ],
 
             ['class' => 'yii\grid\ActionColumn'],

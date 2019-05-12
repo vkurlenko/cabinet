@@ -11,5 +11,8 @@ return [
     // реквизиты мерчанта
     'merchantLogin' => 'andreychef-api',
     'merchantPwd' => 'andreychef',
+
+    // продукты
+    'testingSetCost' => 3000, // стоимость дегустационного сета
 	
 ];

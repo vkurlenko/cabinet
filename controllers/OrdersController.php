@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\AuthAssignment;
+use app\models\FxMenuPart;
 use app\models\FxMenuProduct;
 use app\models\FxMenuProductContent;
 use Yii;
@@ -268,23 +269,77 @@ class OrdersController extends Controller
 	}
 
 	/**
-		список тортов
+		Сгруппированный по категориям список продуктов
 	*/
+    public function getProductsGroped()
+    {
+        $parts = [];
+        $products = [];
+
+        // выберем все категории
+        $p = FxMenuPart::find()
+            ->where(['>', 'ParentID', 0])
+            ->asArray()
+            ->indexBy('id')
+            ->all();
+
+        foreach($p as $k => $v){
+            $parts[] = $k;
+        }
+
+        // выберем все продукты
+        $arr = FxMenuProduct::find()
+                ->select(['id', 'PartID', 'Name', 'ProductImgLarge'])
+                //->where(['IsPublish' => true])
+                ->andWhere(['in', 'PartID', $parts])
+                ->andWhere(['TortType' => true])
+                ->orderBy(['SortID' => SORT_ASC])
+                ->asArray()
+                ->all();
+
+        //debug($arr); die;
+
+        // создадим сгруппированный по категориям массив
+        if($arr){
+            foreach($p as $part){
+                $products[$part['Name']] = [];
+
+                foreach($arr as $product){
+                   if($product['PartID'] == $part['id']){
+                       $products[$part['Name']][$product['id']] = $product['Name'];
+                   }
+                }
+            }
+            //debug($products); die;
+        }
+
+        return $products;
+    }
+
+
+    /**
+     * Простой список продуктов без группировки
+     *
+     * @return array
+     */
     public function getProducts()
     {
         $products = [];
 
         $arr = FxMenuProduct::find()
-                ->select(['id', 'Name', 'ProductImgLarge'])
-                ->where(['IsPublish' => true])
-                ->andWhere(['TortType' => true])
-                ->asArray()
-                ->all();
+            ->select(['id', 'PartID', 'Name', 'ProductImgLarge'])
+            ->where(['IsPublish' => true])
+            ->andWhere(['TortType' => true])
+            ->orderBy(['SortID' => SORT_ASC])
+            ->asArray()
+            ->all();
+
+        //debug($arr); die;
 
         if($arr){
             foreach($arr as $product){
                 $products[$product['id']] = [
-					'name' => $product['Name'], 
+					'name' => $product['Name'],
 					'img' => $product['ProductImgLarge']
 					];
             }
@@ -386,6 +441,30 @@ class OrdersController extends Controller
 
 
         return $isAuthor;
+    }
+
+    public function getOrderSum($order_id = null){
+	    $sum = 0;
+
+	    if($order_id){
+	        $order = Orders::findOne($order_id);
+            $sum = (int)$order->cost - (int)$order->payed;
+
+            $sum = $order->tasting_set ? ($sum + Yii::$app->params['testingSetCost']) : $sum;
+        }
+
+	    return $sum;
+    }
+
+    public function getOrderCost($order_id = null){
+        $sum = 0;
+
+        if($order_id){
+            $order = Orders::findOne($order_id);
+            $sum = $order->tasting_set ? ((int)$order->cost + Yii::$app->params['testingSetCost']) : (int)$order->cost;
+        }
+
+        return $sum;
     }
 	
 	/**

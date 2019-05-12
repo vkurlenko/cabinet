@@ -1,12 +1,15 @@
 <?php
 
 use yii\helpers\Html;
+use app\controllers\UserController;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 
-$this->title = 'Новый пользователь';
-$this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
+$newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользователь';
+$this->title = 'Новый '.$newUserTitle;
+
+$this->params['breadcrumbs'][] = ['label' => UserController::isManager() ? 'Клиенты' : 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-create">

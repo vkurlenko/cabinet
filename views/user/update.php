@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 
 // проверка прав пользователя
-\app\controllers\OrdersController::checkMyOrder($model->id);
+//\app\controllers\OrdersController::checkMyOrder($model->id);
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
