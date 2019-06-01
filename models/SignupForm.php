@@ -63,23 +63,34 @@ class SignupForm extends Model
                 $role->save(false);
             }
 
+            $vars = [
+                'user_name' => $user->username,
+                'user_login' => $user->email,
+                'domain' => Yii::$app->params['mainDomain']
+            ];
+
             Yii::$app
                 ->mailer
                 ->compose(
-                    ['html' => 'signup-html', 'text' => 'signup-html'],
-                    ['user' => $user]
+                   /* ['html' => 'signup-html', 'text' => 'signup-html'],
+                    ['user' => $user]*/
+                    ['html' => 'tpl', 'text' => 'tpl'],
+                    ['tpl_alias' => 'new_cab', 'vars' => $vars]
                 )
-                ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
                 ->setTo($this->email)
-                ->setSubject('Вы зарегистрированы ' . Yii::$app->name)
+                ->setSubject('Вы успешно зарегистрированы на сайте ' . Yii::$app->name)
                 ->send();
+
+            Yii::$app->session->setFlash('success', 'Вы успешно зарегистрированы!');
 
             return $user;
         }
-        else
-            return null;
+        else{
+            Yii::$app->session->setFlash('danger', 'Ошибка регистрации');
 
-        //return $user->save() ? $user : null;
+            return null;
+        }
     }
 
 }

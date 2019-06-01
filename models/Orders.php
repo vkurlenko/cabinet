@@ -3,6 +3,9 @@
 namespace app\models;
 
 use Yii;
+use yii\base\Model;
+use yii\web\UploadedFile;
+use rico\yii2images\models\Image;
 
 /**
  * This is the model class for table "orders".
@@ -23,12 +26,23 @@ use Yii;
  */
 class Orders extends \yii\db\ActiveRecord
 {
+    public $images;
+
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
         return 'orders';
+    }
+
+    public function behaviors()
+    {
+        return [
+            'images' => [
+                'class' => 'rico\yii2images\behaviors\ImageBehave',
+            ]
+        ];
     }
 
     /**
@@ -42,6 +56,7 @@ class Orders extends \yii\db\ActiveRecord
             [['filling', 'description', 'address', 'deliv_name', 'deliv_phone'], 'string'],
             [['deliv_date', 'order_date', 'update_date'], 'safe'],
             [['name'], 'string', 'max' => 255],
+            [['images'], 'file', 'extensions' => 'png, jpg', 'maxFiles' => 3],
         ];
     }
 
@@ -67,6 +82,8 @@ class Orders extends \yii\db\ActiveRecord
             'update_date' => 'Дата изменения заказа',
             'manager' => 'Менеджер',
             'status' => 'Статус',
+
+            'images' => 'Прикрепите фотографии'
         ];
     }
 
@@ -95,6 +112,25 @@ class Orders extends \yii\db\ActiveRecord
     public function getUsers()
     {
         return $this->hasOne(User::className(), ['id' => 'uid']);
+    }
+
+    public function uploadImages()
+    {
+        //debug($this->images); die;
+        //if ($this->validate()) {
+            //echo 'id='.$this->id;
+            foreach($this->images as $file){
+                $path = 'upload/store/' . $file->baseName . '.' . $file->extension;
+                $file->saveAs($path);
+                $this->attachImage($path);
+                unlink($path);
+            }
+            return true;
+        /*}
+        else {
+            return false;
+        }*/
+
     }
 
 

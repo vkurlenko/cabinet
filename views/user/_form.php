@@ -26,7 +26,7 @@ $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->as
 
     <?= $form->field($model, 'username')->textInput() ?>
 
-    <?= $form->field($model, 'phone')->textInput() ?>
+    <?= $form->field($model, 'phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],]) ?>
 
     <?php
     // если пользователь == клиент, то скроем поля редактирования Активности и Роли
@@ -42,7 +42,7 @@ $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->as
     <?php
     $model->password_hash = '';
     ?>
-    <?= $form->field($model, 'password_hash')->textInput()->hint('Чтобы изменить текущий пароль введите новый') ?>
+    <?= $form->field($model, 'password_hash')->passwordInput()->hint('Чтобы изменить текущий пароль введите новый') ?>
 
     <div class="form-group">
         <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>

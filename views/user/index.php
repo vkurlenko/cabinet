@@ -42,7 +42,8 @@ $newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользова
                 'attribute' => 'username',
                 //'label' => 'Роль',
                 'value' => function($data){
-                    return Html::a($data->username, ['user/update/?id='.$data->id]);
+                    //return Html::a($data->username, ['user/update/?id='.$data->id]);
+                    return Html::a($data->username, ['/orders/index/?uid='.$data->id]);
                 },
 				'format' => 'html'
  				
@@ -81,7 +82,10 @@ $newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользова
                 'header'=>'',
                 'format' => 'raw',
                 'value' => function($model, $key, $index, $column) {
-                    return Html::a('заказ от имени клиента', Url::to(['/orders/create', 'uid' => $model->id]), ['style' => 'color: #c33']);
+                    if(Yii::$app->request->get('role') == 'user')
+                        return Html::a('заказ от имени клиента', Url::to(['/orders/create', 'uid' => $model->id]), ['style' => 'color: #c33']);
+                    else
+                        return '';
                 }
             ],
 

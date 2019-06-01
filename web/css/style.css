@@ -259,6 +259,57 @@ span.status a{
 }
 /* /мои заказы */
 
+/* произвольный заказ */
+.datepicker-field{
+	padding: 0 0 15px 0;
+}
+
+.datepicker-field label{
+	float: left;
+	margin-top: 5px;
+}
+
+.ui-datepicker-trigger{
+	float: left;
+	margin-left: 15px;
+}
+
+.hasDatepicker{
+	width: 100px;
+	margin-top: 4px;
+	margin-left: 10px;
+	border: 0;
+}
+
+.product-img-other{
+	margin-top: 5px;
+}
+
+.product-img-other div{
+	width: 33.3%;
+	float: left;
+	text-align: center;
+}
+
+.product-img-other div:first-child{
+	text-align: left;
+}
+
+.product-img-other div:last-child{
+	text-align: right;
+}
+
+.product-img-del{
+	display: inline-block;
+	text-align: center;
+	width: 100%;
+}
+/* /произвольный заказ */
+
+tr.new{
+	font-weight: bold;
+}
+
 
 .footer{
     /*border-bottom: 1px solid #000;*/

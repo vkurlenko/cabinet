@@ -31,7 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 ]); ?>
 
                 <?= $form->field($signupModel, 'username')->textInput(['autofocus' => false])->label('Ваше имя') ?>
-				<?= $form->field($signupModel, 'phone')->label('Телефон') ?>
+				<?= $form->field($signupModel, 'phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],])->label('Телефон') ?>
                 <?= $form->field($signupModel, 'email')->label('E-mail') ?>                
                 <?= $form->field($signupModel, 'password')->passwordInput()->label('Введите пароль') ?>
                 <div class="form-group">
@@ -83,6 +83,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     </div>
 <!-- /Авторизация -->
+
 </div>
 
 

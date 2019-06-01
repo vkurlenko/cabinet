@@ -1,18 +1,42 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\DetailView;
+use app\models\Hash;
+use app\models\Orders;
+use app\controllers\OrdersController;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
 
-// проверка прав пользователя
-\app\controllers\OrdersController::checkMyOrder($model->uid, $model->manager);
 
+// проверка прав пользователя (клиент или менеджер этого заказа)
+if(!OrdersController::checkMyOrder($model->uid, $model->manager) && !Yii::$app->request->get('hash'))
+    Yii::$app->response->redirect(['orders/index']);
+
+/* проверим кто пришел */
 $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
 
 if(count($roles) == 1 && $roles['user'])
-    $isUser = true;
+    $isUser = true; // пришел клиент
+/* /проверим кто пришел */
+
+
+/* если пришел hash, то проверим его */
+if(Yii::$app->request->get('hash')){
+    if(!OrdersController::validHash(Yii::$app->request->get('hash'))){
+
+        // если hash просрочен, то отправим ошибку
+        Yii::$app->response->redirect(['site/errors', 'msg' => 'hash_expired']);
+    }
+    else{
+        // иначе предложим оплатить
+        $isUser = true;
+    }
+
+}
+/* /если пришел hash, то проверим его */
 
 
 
@@ -21,15 +45,9 @@ $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']]
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 
-$status = $model::getStatus()[$model->status];
-$fills = \app\controllers\OrdersController::getFills();
-$products = \app\controllers\OrdersController::getProducts();
-
-/*$sum = (int)$model->cost - (int)$model->payed;
-
-$sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*/
-//$sum = \app\controllers\OrdersController::getOrderSum($model->id);
-
+$status     = Orders::getStatus()[$model->status];
+$fills      = OrdersController::getFills();
+$products   = OrdersController::getProducts();
 
 ?>
 <div class="orders-view">
@@ -38,10 +56,16 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
 
     <div class="orders-form row">
 		<div class="col-md-8">
-			<table width="100%" class="order-view-table" > 
+			<table width="100%" class="order-view-table" >
+                <?php
+                if(Yii::$app->user->getId()):
+                ?>
 				<tr>
-					<td colspan=2 class="blank-link"><?=Html::img('/img/pdf.png').' '.Html::a('Бланк заказа', '/');?></td>
+					<td colspan=2 class="blank-link"><?=Html::img('/img/pdf.png').' '.Html::a('Бланк заказа', Url::to(['/orders/pdf', 'id' => $model->id]));?></td>
 				</tr>
+                <?php
+                endif;
+                ?>
 				<tr>
 					<td width="30%">Клиент</td>
 					<td width="70%"><?=$model->deliv_name?></td>
@@ -52,7 +76,7 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
 				</tr>
 				<tr>
 					<td>E-mail</td>
-					<td><?=\app\controllers\OrdersController::getUserEmail($model->uid)?></td>
+					<td><?=OrdersController::getUserEmail($model->uid)?></td>
 				</tr>
 				<tr>
 					<td>Дата доставки</td>
@@ -64,11 +88,11 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
 				</tr>
 				<tr>
 					<td>Начинка</td>
-					<td><?=$fills[$model->filling]?></td>
+					<td><?/*=$fills[$model->filling]*/?><?=$model->filling?></td>
 				</tr>
 				<tr>
 					<td>Название торта</td>
-					<td><?=$products[$model->name]['name'];?></td>
+					<td><?/*=$products[$model->name]['name'];*/?><?=$model->name?></td>
 				</tr>
 				
 				<tr>
@@ -82,13 +106,13 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
                     <td><?=$model->tasting_set ? 'Да' : 'Нет';?></td>
                 </tr>
 				<tr>
-					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=\app\controllers\OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
+					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
 				</tr>
 				<tr>
 					<td colspan=2 class="cost-title bg-gray"><div>Ранее оплачено: <span class="sum"><?=$model->payed?></span> <span class="currency">руб.</span></div></td>					
 				</tr>
 				<tr>
-					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?=\app\controllers\OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
+					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?=OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
 				</tr>
 				
 			</table>
@@ -97,15 +121,13 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
 
                 <?php
                 if($isUser):
-                    // если клиент
-                    ?>
-                    <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
+                    // если клиент или переход по ссылке с hash для оплаты
 
-                    <?php
                     // если статус Выставлен счет, то кнопка оплаты
                     if($model->status === 1):
                     ?>
-                    <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
+                        <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
+                        <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
                     <?php
                     else:
                         echo '<p class="alert alert-danger">Оплата невозможна, обратитесь к менеджеру</p>';
@@ -113,7 +135,7 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
                     ?>
 
                 <?php
-                else:
+                elseif(Yii::$app->user->getId()):
                     if($model->status == 5){
                         // если статус заказа "Оплачен"
                         echo Html::a('Доплата к заказу', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn red']);
@@ -146,115 +168,58 @@ $sum = $model->tasting_set ? $sum + Yii::$app->params['testingSetCost'] : $sum;*
 		</div>
 		
 		<div class="col-md-4">
-			<div class="product-img">
-				<?=$products[$model->name]['img'] ? Html::img('http://andreychef/images/restoran_menu/'.$products[$model->name]['img']) : '';?>
-			</div>			
+
+            <div class="product-img">
+
+                <?php
+                $images = OrdersController::getProductImages($model);
+                if($images):
+                    ?>
+                    <div class="">
+                        <div class="product-img-main">
+                            <?php
+                            foreach($images as $img){
+                                if($img['isMain'])
+                                    echo $img['filePath'];
+                            }
+                            ?>
+                        </div>
+                        <div class="product-img-other">
+                            <?php
+                            foreach($images as $img) {
+
+                                ?>
+                                <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
+                                    <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
+                                </div>
+                                <?php
+
+                            }
+                            ?>
+                        </div>
+                    </div>
+                <?php
+                endif;
+                ?>
+
+                <?php
+                /*
+                 else{
+                     echo $arr[$model->name]['img'] ? Html::img(Yii::$app->params['mainDomain'].'/images/restoran_menu/'.$arr[$model->name]['img']) : '';
+                 }*/
+                ?>
+
+            </div>
+
+            <!--<div class="product-img">
+                <?/*=$products[$model->name]['img'] ? Html::img(Yii::$app->params['mainDomain'].'/images/restoran_menu/'.$products[$model->name]['img']) : '';*/?>
+            </div>		-->
 		</div>
 	</div>
 	
 	<div class="log">
-		<?=\app\controllers\OrdersController::getLog($model->id);?>
+		<?=OrdersController::getLog($model->id);?>
 	</div>
 
-    сбер
-    <?php
-    /*$order_id = 123;
-    $sum  = 1000;
-
-    $vars = array();
-    $vars['userName'] = 'andreychef-api';
-    $vars['password'] = 'andreychef';
-    $vars['password'] = 'andreychef';
-
-    // ID заказа в магазине.
-    $vars['orderNumber'] = $order_id;
-
-    // Сумма заказа в копейках.
-    $vars['amount'] = $sum * 100;
-
-    // URL куда клиент вернется в случае успешной оплаты.
-    $vars['returnUrl'] = 'http://andreychef.com/success/';
-
-    // URL куда клиент вернется в случае ошибки.
-    $vars['failUrl'] = 'http://andreychef.com/error/';
-
-    // Описание заказа, не более 24 символов, запрещены % + \r \n
-    $vars['description'] = 'Заказ №' . $order_id . ' на andreychef.com';
-
-    $ch = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do?' . http_build_query($vars));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_HEADER, false);
-    $res = curl_exec($ch);
-    curl_close($ch);
-
-    $res = json_decode($res, JSON_OBJECT_AS_ARRAY);
-    if (empty($res['orderId'])){
-        // Возникла ошибка:
-        echo $res['errorMessage'];
-    } else {
-        // Успех:
-        // Тут нужно сохранить ID платежа в своей БД - $res['orderId']
-
-        // Перенаправление клиента на страницу оплаты.
-        //header('Location: ' . $res['formUrl'], true);
-
-        // Или на JS
-        echo '<script>document.location.href = "' . $res['formUrl'] . '"</script>';
-    }*/
-    ?>
-
-
-    <? /*=DetailView::widget([
-        'model' => $model,
-        'attributes' => [
-            //'id',
-            [
-				// заказчик
-                'attribute' => 'uid',
-                'value' => function($data){
-                    $users = \app\controllers\OrdersController::getPersons('user');
-                    return $users[$data->uid].' ('.\app\controllers\OrdersController::getUserEmail($data->uid).')';
-                }
-            ],
-			'deliv_name',
-			'deliv_phone',			
-            [				
-                'attribute' => 'name',
-                'value' => function($data){
-                    $products = \app\controllers\OrdersController::getProducts();
-                    return $products[$data->name];
-                }
-            ],
-            [
-                'attribute' => 'filling',
-                'value' => function($data){
-                    $fills = \app\controllers\OrdersController::getFills();
-                    return $fills[$data->filling];
-                }
-            ],
-            'description:ntext',
-            'deliv_date',			
-            'address:ntext',
-            'cost',
-            'payed',
-            'order_date',
-            'update_date',
-            [
-                'attribute' => 'manager',
-                'value' => function($data){
-                    $users = \app\controllers\OrdersController::getPersons('manager');
-                    return $users[$data->manager];
-                }
-            ],
-            [
-                'attribute' => 'status',
-                'value' => function($data, $model){
-                    $arr = \app\models\Orders::getStatus();
-                    return $arr[$data->status];
-                }
-            ],
-        ],
-    ])*/ ?>
 
 </div>

@@ -1,16 +1,33 @@
 <?php
 
+use kartik\mpdf\Pdf;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
     'id' => 'basic',
+    'name' => 'Мастерская тортов andreychef.com',
     'basePath' => dirname(__DIR__),
     'language' => 'ru-RU',
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
+    ],
+    'modules' => [
+        'yii2images' => [
+            'class' => 'rico\yii2images\Module',
+            //be sure, that permissions ok
+            //if you cant avoid permission errors you have to create "images" folder in web root manually and set 777 permissions
+            'imagesStorePath' => 'upload/store', //path to origin images
+            'imagesCachePath' => 'upload/cache', //path to resized copies
+            'graphicsLibrary' => 'GD', //but really its better to use 'Imagick'
+            //'imagesStorePath' => '@webroot/upload/store', //path to origin images
+            //'imagesCachePath' => '@webroot/upload/cache', //path to resized copies
+            'placeHolderPath' => '@webroot/upload/store/no-image.png', // if you want to get placeholder when image not exists, string will be processed by Yii::getAlias
+            'imageCompressionQuality' => 85, // Optional. Default value is 85.
+        ],
     ],
     'components' => [
 		'authManager' => [
@@ -46,10 +63,16 @@ $config = [
             // for the mailer to send real emails.
             'useFileTransport' => false,
             'transport' => [
-                'class'     => 'Swift_SmtpTransport',
+                /*'class'     => 'Swift_SmtpTransport',
                 'host'      => 'mail.nic.ru',
                 'username'  => 'site@promotionsales.ru',
                 'password'  => 'Id07inWpL34jl4BbIcjB',
+                'port'      => '465',
+                'encryption' => 'ssl',*/
+                'class'     => 'Swift_SmtpTransport',
+                'host'      => 'smtp.mail.ru',
+                'username'  => 'robot@andreychef.com',
+                'password'  => 'n8Sj-8deeGYF',
                 'port'      => '465',
                 'encryption' => 'ssl',
             ],
@@ -69,9 +92,35 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                ''=>'/',
+                '<action>'=>'site/<action>',
             ],
         ],
+
+        // setup Krajee Pdf component
+        'pdf' => [
+            'class' => Pdf::classname(),
+            'format' => Pdf::FORMAT_A4,
+            'orientation' => Pdf::ORIENT_PORTRAIT,
+            'destination' => Pdf::DEST_BROWSER,
+            'cssFile' => '@vendor/kartik-v/yii2-mpdf/assets/bootstrap.min.css',
+            //'cssFile' => '@vendor/kartik-v/yii2-mpdf/assets/style.css',
+            'marginLeft' => 5,
+            'marginRight' => 5,
+
+            // refer settings section for all configuration options
+        ]
         
+    ],
+    'controllerMap' => [
+        'elfinder' => [
+            'class' => 'mihaildev\elfinder\PathController',
+            'access' => ['@'],
+            'root' => [
+                'path' => 'upload/global',
+                'name' => 'Global'
+            ],
+        ]
     ],
     'params' => $params,
 ];

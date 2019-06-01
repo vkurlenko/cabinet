@@ -27,6 +27,23 @@ class PayController extends Controller
                     'delete' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'view', 'create', 'delete', 'update'],
+                        'roles' => ['admin', 'director', 'manager']
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['pay-order'],
+                        //'roles' => ['user']
+                        'roles' => ['user','?']
+                    ],
+                ],
+            ],
+            /* */
         ];
     }
 
@@ -120,29 +137,36 @@ class PayController extends Controller
      */
     public function actionPayOrder($order_id = null)
     {
-        if($order_id){
+//echo $order_id; die;
+        if(!$order_id)
+            if(Yii::$app->request->get('order_id'))
+                $order_id = Yii::$app->request->get('order_id');
 
+        if($order_id){
             // установим статус заказа 'Отправлен в банк'
             OrdersController::setStatus($order_id, 4);
-
             $order = Orders::findOne($order_id);
 
             if($order){
 
                 // сумма к оплате
-                /*$sum = $order->cost;
-
-                if($order->payed)
-                    $sum = $sum - $order->payed;*/
                 $sum = \app\controllers\OrdersController::getOrderSum($order_id);
+
+                if(!$sum){
+                    Yii::$app->session->setFlash('danger', 'Сумма к оплате должна быть больше 0');
+                    return $this->redirect(['/orders/view', 'id' => $order_id]);
+                }
+
 
                 // создадим новую запись в таблице платежей (транзакций)
                 $pay = new Pay();
+
 
                 if($pay->save(false) && $sum){
 
                     // 2 стадийная оплата
                     self::registerPreAuth($pay, $sum, $order_id);
+                    //echo __LINE__; die;
                 }
             }
         }
@@ -193,6 +217,7 @@ class PayController extends Controller
      */
     protected function registerPreAuth($pay, $sum, $order_id)
     {
+
         $vars = array();
         $vars['userName'] = Yii::$app->params['merchantLogin']; //'логин';
         $vars['password'] = Yii::$app->params['merchantPwd']; //'пароль';
@@ -203,11 +228,22 @@ class PayController extends Controller
         // Сумма заказа в копейках.
         $vars['amount'] = $sum * 100;
 
-        // URL куда клиент вернется в случае успешной оплаты.
-        $vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+        if(Yii::$app->user->getId()){
+            // URL куда клиент вернется в случае успешной оплаты.
+            $vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
 
-        // URL куда клиент вернется в случае ошибки.
-        $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+            // URL куда клиент вернется в случае ошибки.
+            $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+        }
+        else{
+            // URL куда клиент вернется в случае успешной оплаты.
+            $vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/success?id='.$order_id;
+
+            // URL куда клиент вернется в случае ошибки.
+            $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/error?id='.$order_id;
+        }
+
+
 
         // Описание заказа, не более 24 символов, запрещены % + \r \n
         $vars['description'] = 'Заказ №' . $order_id . ' на '.Yii::$app->params['subDomain'];
@@ -235,7 +271,7 @@ class PayController extends Controller
 
             self::setPayItem($pay, $order_id, $res['orderId'], $vars['amount']);
             Yii::$app->session->setFlash('success', 'Платеж зарегистрирован');
-
+//echo __LINE__; die;
             // Перенаправление клиента на страницу оплаты.
             header('Location: ' . $res['formUrl'], true);
 
@@ -272,14 +308,80 @@ class PayController extends Controller
         $res = curl_exec($ch);
         curl_close($ch);
 
+       // debug($res); die;
+
         $res = json_decode($res, JSON_OBJECT_AS_ARRAY);
         if (!empty($res['errorCode'])) {
             Yii::$app->session->setFlash('danger', $res['errorMessage']);
             return false;
         } else {
             Yii::$app->session->setFlash('success', 'Оплата завершена');
+
+            $tpl_alias = 'order_payed_for_client';
+            $vars = [
+                'order_number' =>self::getOrderNumberByPayId($orderId)
+            ];
+
+            /* письмо об оплате клиенту */
+            $send = Yii::$app
+                ->mailer
+                ->compose(
+                    ['html' => 'tpl', 'text' => 'tpl'],
+                    ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                )
+                ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                ->setTo(OrdersController::getUserEmail( self::getUserByOrderNumber(self::getOrderNumberByPayId($orderId))))
+                //->setSubject('Заказ №'.$model->id.' на сайте '.Yii::$app->params['mainDomain'].' успешно сформирован ')
+                ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                ->send();
+            /* /письмо об оплате клиенту */
+
+            /* письмо об оплате менеджеру */
+            $tpl_alias = 'order_payed_for_manager';
+
+            $manager_email = OrdersController::getUserEmail( OrdersController:: getOrderManager(self::getOrderNumberByPayId($orderId)));
+
+            if($manager_email){
+                $send = Yii::$app
+                    ->mailer
+                    ->compose(
+                        ['html' => 'tpl', 'text' => 'tpl'],
+                        ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                    )
+                    ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                    ->setTo($manager_email)
+                    ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                    ->send();
+            }
+            /* /письмо об оплате менеджеру */
+
+
             return true;
         }
+    }
+
+    protected function getOrderNumberByPayId($payId = null)
+    {
+        if($payId){
+            $order = Pay::find()->where(['orderId' => $payId])->asArray()->one();
+
+            if($order)
+                return $order['orderNumber'];
+        }
+
+        return false;
+    }
+
+    protected function getUserByOrderNumber($orderNumber = null)
+    {
+        if($orderNumber){
+            $order = Orders::find()->where(['id' => $orderNumber])->asArray()->one();
+
+            if($order)
+                return $order['uid'];
+        }
+
+        return false;
     }
 
     /**

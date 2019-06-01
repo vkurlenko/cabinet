@@ -1,9 +1,14 @@
 <?php
 
 use yii\helpers\Html;
+use app\controllers\MailTplController;
 
+$tpl_alias = 'pay_link';
+
+$vars = [
+    'link' => $link
+];
 ?>
 
-<div class="">
-    <p>Ваша ссылка на оплату <?= $link ?></p>
-</div>
+<?=MailTplController::getTplByAlias($tpl_alias, $vars);?>
+

@@ -67,11 +67,24 @@ class SiteController extends Controller
     public function actionIndex()
     {
         //return $this->render('index');
+
         if(!Yii::$app->user->getId())
-            return $this->redirect('/site/login');
+            //return $this->redirect('/site/login');
+            return $this->redirect('login');
         else{
 			return $this->redirect('/orders/index');
 		}
+    }
+
+    public function actionErrors()
+    {
+        $error = Yii::$app->request->get('msg');
+
+        if($error){
+            $msg = Yii::$app->params['errors'][$error];
+        }
+
+        return $this->render('errors', compact('msg'));
     }
 
     /**
@@ -210,7 +223,7 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             if ($model->sendEmail()) {
                 Yii::$app->session->setFlash('success', 'Проверьте почту для получения дальнейших инструкций.', false);
-                return $this->goHome();
+                //return $this->goHome();
             } else {
                 Yii::$app->session->setFlash('error', 'Извините, ошибка восстановления пароля дла указанного email.', false);
             }

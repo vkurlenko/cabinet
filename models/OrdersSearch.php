@@ -49,7 +49,8 @@ class OrdersSearch extends Orders
             'query' => $query,
             'sort'=>[
                 'defaultOrder'=>[
-                    'id'=>SORT_DESC
+                    'manager'=>SORT_ASC,
+                    'id'=>SORT_DESC,
                 ]
             ]
         ]);
@@ -69,17 +70,25 @@ class OrdersSearch extends Orders
         // проверим роль пользователя и для КЛИЕНТА выведем только его заказы,
         // а для остальных ролей - все заказы
         $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+        // если в GET пришел id клиента, то выберем заказ только этого клиента
+        // (работает только для manager+)
+        if(isset($params['uid'])){
+            $uid = $params['uid'];
+        }
+        else
+            $uid = $this->uid;
 		
         if($role['user']){
             $uid = Yii::$app->user->getId();
 			$manager = $this->manager;
 		}
-        elseif($role['manager']){
+        /*elseif($role['manager']){
 			$manager = Yii::$app->user->getId();
-			$uid = $this->uid;
-		}
+			//$uid = $this->uid;
+		}*/
 		else{
-            $uid = $this->uid;
+            //$uid = $this->uid;
 			$manager = $this->manager;
 		}
 		

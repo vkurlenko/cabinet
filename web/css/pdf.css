@@ -1,0 +1,105 @@
+/* PDF */
+.garamond{
+    padding: 15px;
+}
+
+.garamond, table td{
+    font-family: Arial, sans-serif !important;
+}
+
+.pdf{
+    width: 100%;
+    border: 1px solid #000000;
+
+}
+
+.pdf h3{
+    font-size:20pt;
+}
+
+.pdf #call_order_link{
+    display: none;
+}
+#ad, #ph span{
+    font-size: 14pt;
+}
+
+#ph{
+    font-size: 12pt;
+}
+
+.pdf .header-addr{
+    padding: 0 0 0 20px;
+    height: auto;
+}
+
+.pdf .addr{
+    /*width: 100px;*/
+}
+
+.pdf .addr,
+.pdf .header-addr,
+.pdf .header-phones span,
+.pdf .header-phones,
+.pdf .header-phones > div {
+    /*font-size: 10pt !important;*/
+}
+
+.pdf table.header-table{
+    border-top: 0;
+    border-bottom: 1px solid #000000;
+}
+
+.pdf .logo{
+    border: 0;
+}
+
+#im{
+    border: 0;
+}
+
+.pdf td{
+    padding: 10pt;
+}
+
+.pdf td.td-logo{
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+}
+
+#status6{
+    color: #CC3333;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 20pt;
+}
+
+.cost-title{
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+span.sum {
+    color: #CC3333;
+}
+
+.product-img-other{
+    margin-top: 5px;
+}
+
+.product-img-other div{
+    width: 30%;
+    float: left;
+    text-align: center;
+    border:1px solid red;
+}
+
+.product-img-other div.img-0{
+    text-align: left;
+}
+
+.product-img-other div.img-2{
+    text-align: right;
+}
+
+/* /PDF */

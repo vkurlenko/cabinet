@@ -14,6 +14,7 @@ use yii\grid\GridView;
 
 $this->title = 'Список заказов';
 
+//echo 'client = '.\app\controllers\UserController::isClient();
 
 if(\app\controllers\UserController::isClient()){
     $this->title = 'Мои заказы';
@@ -24,6 +25,11 @@ if(\app\controllers\UserController::isClient()){
 
 $this->params['breadcrumbs'][] = $this->title;
 
+
+/* установим статус Выполнен */
+\app\controllers\OrdersController::setOrderComplete();
+/* /установим статус Выполнен */
+
 ?>
 <div class="orders-index">
 
@@ -32,6 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
     if(Yii::$app->user->can('user')):
     ?>
     <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
+    <!--<span class="status"><?/*= Html::a('Создать новый произвольный заказ', ['create?free'], ['class' => 'garamond']) */?></span>-->
     <?php
     endif;
     ?></h1>
@@ -49,6 +56,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         //'filterModel' => $searchModel,
+        'rowOptions' => function ($model, $key, $index, $grid) {
+
+        // если менеджер не назначен => заказ новый, выделим жирным
+            $class = $model->manager ? '' : 'new';
+            return ['class' => $class];
+        },
         'columns' => [
             //['class' => 'yii\grid\SerialColumn'],
             [
@@ -66,9 +79,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'name',
                 'value' => function($data){
-                    $products = \app\controllers\OrdersController::getProducts();
-                    return $products[$data->name]['name'];
-                }
+
+                        if (!\app\controllers\UserController::isClient())
+                            return Html::a($data->name, ['view', 'id' => $data->id]);
+                        else
+                            return $data->name;
+
+                },
+				'format' => 'html'
             ],
             [
                 'attribute' => 'cost',
@@ -120,13 +138,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => function($model, $key, $index, $column) {
                     return Html::a(
                         Html::img('/img/pdf.png'),
-                        Url::to(['#', 'id' => $model->id]),
+                        Url::to(['/orders/pdf', 'id' => $model->id]),
+                        []
+                        /*Url::to(['#', 'id' => $model->id]),
                         [
                             'data-id' => $model->id,
                             'data-pjax'=>true,
                             'action'=>Url::to(['cart/add']),
                             //'class'=>'btn btn-success gridview-add-to-cart',
-                        ]
+                        ]*/
                     );
                 }
             ],

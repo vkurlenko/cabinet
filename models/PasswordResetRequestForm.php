@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use yii\helpers\Html;
 
 /**
  * Password reset request form
@@ -53,15 +54,51 @@ class PasswordResetRequestForm extends Model
             }
         }
 
-        return Yii::$app
+        /*$vars = [
+            'link' => Html::a($link, $link)
+        ];
+
+        //
+        $send = Yii::$app
+            ->mailer
+            ->compose(
+            //['html' => 'payLink-html', 'text' => 'payLink-html'],
+                ['html' => 'tpl', 'text' => 'tpl'],
+                ['tpl_alias' => 'pay_link', 'vars' => $vars]
+            )
+            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+            ->setTo($user->email)
+            ->setSubject('Ваша ссылка для оплаты заказа на сайте '.Yii::$app->params['mainDomain'])
+            ->attachContent($blank_content, ['fileName' => $blank_filename, 'contentType' => 'application/pdf'])
+            ->send();*/
+
+        /*return Yii::$app
             ->mailer
             ->compose(
                 ['html' => 'passwordResetToken-html', 'text' => 'passwordResetToken-text'],
                 ['user' => $user]
             )
-            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
             ->setTo($this->email)
-            ->setSubject('Password reset for ' . Yii::$app->name)
+            ->setSubject('Восстановление пароля на сайте ' . Yii::$app->name)
+            ->send();*/
+
+        $resetLink = Yii::$app->urlManager->createAbsoluteUrl(['site/reset-password', 'token' => $user->password_reset_token]);
+        $vars = [
+            'reset_link' => Html::a($resetLink, $resetLink),
+            'user_name' => $user->username,
+            'domain' => Yii::$app->params['mainDomain']
+        ];
+
+        return Yii::$app
+            ->mailer
+            ->compose(
+                ['html' => 'tpl', 'text' => 'tpl'],
+                ['tpl_alias' => 'pwd_recovery', 'vars' => $vars]
+            )
+            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+            ->setTo($this->email)
+            ->setSubject('Восстановление пароля на сайте ' . Yii::$app->name)
             ->send();
     }
 

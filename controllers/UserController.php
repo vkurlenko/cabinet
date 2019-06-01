@@ -4,9 +4,11 @@ namespace app\controllers;
 
 use app\models\AuthAssignment;
 use app\models\AuthItem;
+use app\models\Orders;
 use Yii;
 use app\models\User;
 use app\models\UserSearch;
+use yii\web\Application;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -34,12 +36,12 @@ class UserController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
-                        'actions' => ['update'],
+                        'actions' => ['update', 'view',],
                         'roles' => ['admin', 'director', 'manager', 'user']
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['index', 'view', 'create'],
+                        'actions' => ['index', 'view', 'create', 'delete'],
                         'roles' => ['admin', 'director', 'manager']
                     ],
                 ],
@@ -132,6 +134,8 @@ class UserController extends Controller
 
             $post = Yii::$app->request->post();
 
+
+
             if($post['User']['role']){
                 $role = AuthAssignment::find()->where(['user_id' => $model->id])->one();
                 $role->item_name = $post['User']['role'];
@@ -143,11 +147,16 @@ class UserController extends Controller
                 $model->generateAuthKey();
             }
 
+
+
             if($model->save()){
-                if(Yii::$app->user->can('manager'))
+                if(Yii::$app->user->can('manager')){
                     return $this->redirect(['view', 'id' => $model->id]);
-                else
-                    return $this->redirect(['user/index']);
+                }
+                else{
+                    return $this->redirect(['orders/index']);
+                }
+
             }
         }
 
@@ -268,6 +277,32 @@ class UserController extends Controller
             return true;
         else
             return false;
+    }
+
+    public function getManagersAll()
+    {
+        $managers = ['admin', 'director', 'manager'];
+
+        $arr = AuthAssignment::find()->where(['IN', 'item_name', $managers])->asArray()->all();
+
+        return $arr;
+    }
+
+    public function getManagersEmails()
+    {
+        $arr = self::getManagersAll();
+        $ids = [];
+        $emails = [];
+
+        foreach($arr as $manager){
+            $ids[] = $manager['user_id'];
+        }
+
+        if($ids){
+            $emails = User::find()->select('email')->where(['IN', 'id', $ids])->asArray()->all();
+        }
+
+        return $emails;
     }
 
     /**

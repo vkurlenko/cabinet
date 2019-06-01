@@ -38,6 +38,7 @@ $items = [];
 
 if(Yii::$app->user->can('admin')){
     $items[] = ['label' => 'Все пользователи', 'url' => Url::to(['/user/index'])];
+    $items[] = ['label' => 'Шаблоны', 'url' => Url::to(['/mail-tpl/index'])];
 }
 
 if(Yii::$app->user->can('director')){

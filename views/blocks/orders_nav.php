@@ -17,9 +17,13 @@ function getClass($p)
     elseif(!$get && $p == 'active')
         return 'active';
 }
+
+$uid = Yii::$app->request->get('uid') ? Yii::$app->request->get('uid') : '';
+
+//debug(Yii::$app->request->get('uid'));
 ?>
 
 <div class="orders-nav">
-    <?=Html::a('Текущие заказы', '?active', ['class' => getClass('active')])?>
-    <?=Html::a('История заказов', '?complete', ['class' => getClass('complete')])?>
+    <?=Html::a('Текущие заказы', '?active&uid='.$uid, ['class' => getClass('active')])?>
+    <?=Html::a('История заказов', '?complete&uid='.$uid, ['class' => getClass('complete')])?>
 </div>

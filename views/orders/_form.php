@@ -29,6 +29,9 @@ if($uid && !$isClient){
     $model->manager = Yii::$app->user->getId();
 }
 
+// произвольный заказ?
+if(null !== Yii::$app->request->get('free'))
+    $isFree = true;
 
 ?>
 
@@ -37,7 +40,7 @@ if($uid && !$isClient){
 		<?php $form = ActiveForm::begin(); ?>
 
         <?php
-        /* только для менеджера */
+/* только для менеджера */
         if(!$isClient):
         ?>
 
@@ -51,9 +54,9 @@ if($uid && !$isClient){
 		</div>
 
         <?php
-        /* /только для менеджера */
+/* /только для менеджера */
 
-        /* только для клиента */
+/* только для клиента */
         else:
             ?>
 
@@ -63,16 +66,19 @@ if($uid && !$isClient){
 
         <?php
         endif;
-        /* /только для клиента */
+/* /только для клиента */
+
         ?>
 		
 		<?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
-		<?= $form->field($model, 'deliv_phone')->textInput()->hint('Кому предназначен заказ')  ?>
+		<?= $form->field($model, 'deliv_phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],])->hint('Кому предназначен заказ')  ?>
 
-		<?= $form->field($model, 'name')->dropDownList($products, ['prompt' => 'Выберите торт']) ?>
+		<?/*= $form->field($model, 'name')->dropDownList($products, ['prompt' => 'Выберите торт']) */?>
+        <?= $form->field($model, 'name')->textarea(['rows' => 2]) ?>
 
-		<?= $form->field($model, 'filling')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку']) ?>
+		<?/*= $form->field($model, 'filling')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку']) */?>
+        <?= $form->field($model, 'filling')->textarea(['rows' => 2]) ?>
 
 		<?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 
@@ -91,13 +97,23 @@ if($uid && !$isClient){
 
             <?= $form->field($model, 'payed')->textInput() ?>
 
-            <?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера']) ?>
+            <?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера', 'options' =>[ Yii::$app->user->getId() => ['Selected' => true]]]) ?>
 
             <?= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) ?>
 
         <?php
         endif;
         /* /только для менеджера */
+        ?>
+
+        <?php
+        //if($isFree):
+        ?>
+
+        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
+
+        <?php
+        //endif;
         ?>
 
 		<div class="form-group">
@@ -109,10 +125,45 @@ if($uid && !$isClient){
 	
 	<div class="col-md-4">
 			<div class="product-img">
+
+                <?php
+                $images = \app\controllers\OrdersController::getProductImages($model);
+                if($images):
+                ?>
+                <div class="">
+                    <div class="product-img-main">
+                        <?php
+                        foreach($images as $img){
+                            if($img['isMain'])
+                                echo $img['filePath'];
+                        }
+                        ?>
+                    </div>
+                    <div class="product-img-other">
+                        <?php
+                        foreach($images as $img) {
+
+                                ?>
+                                <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
+                                    <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
+                                </div>
+                            <?php
+
+                        }
+                            ?>
+                    </div>
+                </div>
+                <?php
+                endif;
+                ?>
+
 			<?php
-			//debug( $arr[$model->name]['img']);
+           /*
+            else{
+                echo $arr[$model->name]['img'] ? Html::img(Yii::$app->params['mainDomain'].'/images/restoran_menu/'.$arr[$model->name]['img']) : '';
+            }*/
 			?>
-				<?=$arr[$model->name]['img'] ? Html::img('http://andreychef/images/restoran_menu/'.$arr[$model->name]['img']) : '';?>
+
 			</div>			
 		</div>
 </div>
