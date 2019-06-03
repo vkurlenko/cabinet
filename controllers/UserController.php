@@ -41,7 +41,7 @@ class UserController extends Controller
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['index', 'view', 'create', 'delete'],
+                        'actions' => ['index', 'view', 'create', 'delete', 'set-fake-uid', 'unset-fake-uid'],
                         'roles' => ['admin', 'director', 'manager']
                     ],
                 ],
@@ -242,6 +242,7 @@ class UserController extends Controller
      */
     public function renderUserInfo($uid = null)
     {
+
         if($uid){
             $user = User::find()->where(['id' => $uid])->asArray()->one();
             return $this->render('/blocks/userinfo', compact('user'));
@@ -303,6 +304,30 @@ class UserController extends Controller
         }
 
         return $emails;
+    }
+
+    /**
+     * Запишем в сессию id клиента, от имени которого работает менеджер
+     * @param bool $fuid
+     */
+    public function actionSetFakeUid($fuid = false)
+    {
+        if($fuid){
+            $session = Yii::$app->session;
+            $session->set('fuid', $fuid);
+        }
+    }
+
+    /**
+     * Удалим из сессии id клиента, от имени которого работает менеджер
+     * @return \yii\web\Response
+     */
+    public function actionUnsetFakeUid()
+    {
+            $session = Yii::$app->session;
+            $session->remove('fuid');
+
+            return $this->redirect(['index', 'role' => 'user']);
     }
 
     /**

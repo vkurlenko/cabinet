@@ -59,5 +59,65 @@ $(document).ready(function(){
 
     /* галерея картинок произвольного продукта */
 
+    $('input[name="dates"]').daterangepicker(
+        {
+            "locale": {
+                "format": "YYYY-MM-DD",
+                "separator": " - ",
+                "applyLabel": "Выбрать",
+                "cancelLabel": "Отмена",
+                "fromLabel": "С",
+                "toLabel": "По",
+                "customRangeLabel": "Custom",
+                "weekLabel": "W",
+                "daysOfWeek": [
+                    "Вс",
+                    "Пн",
+                    "Вт",
+                    "Ср",
+                    "Чт",
+                    "Пт",
+                    "Сб"
+                ],
+                "monthNames": [
+                    "Январь",
+                    "Февраль",
+                    "Март",
+                    "Апрель",
+                    "Май",
+                    "Июнь",
+                    "Июль",
+                    "Август",
+                    "Сентябрь",
+                    "Октябрь",
+                    "Ноябрь",
+                    "Декабрь"
+                ],
+                "firstDay": 1
+            },
+            "opens": "left",
+            "autoApply": false,
+            "parentEl": ".orders-nav"
+        }
+    );
+
+    $('.date-range a').on('click', function()
+    {
+        $('input[name="dates"]').click();
+        return false;
+    })
+
+
+    $('input[name="dates"]').on('apply.daterangepicker', function(ev, picker) {
+        document.location.href = '/orders/index?daterange='+$('input[name="dates"]').val();
+    });
+
+
+
+
+
+
+
+
 
 })

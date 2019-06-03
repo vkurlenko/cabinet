@@ -138,6 +138,9 @@ class OrdersController extends Controller
     {
         $model = new Orders();
 
+        $session = Yii::$app->session;
+        $model->uid = $session->get('fuid') ? $session->get('fuid') : $model->uid;
+
         $model->order_date = date('Y-m-d H:i:s');
         $model->update_date = date('Y-m-d H:i:s');
         $model->cost = 0;
@@ -149,17 +152,15 @@ class OrdersController extends Controller
             $model->images = UploadedFile::getInstances($model, 'images');
             $model->UploadImages();
 
-            $tpl_alias = 'new_order';
+
             $vars = [
                 'order_number' => $model->id,
                 'domain' => Yii::$app->params['mainDomain']
             ];
 
-           /* debug($vars);
-
-            echo 'subject = '.MailTplController::getSubject($tpl_alias, $vars); die;*/
 
             /* отправим клиенту письмо о формировании заказа */
+            $tpl_alias = 'new_order_for_client';
             $user = UserController::getUser($model->uid);
 
             $send = Yii::$app
@@ -178,12 +179,13 @@ class OrdersController extends Controller
             /* /отправим клиенту письмо о формировании заказа */
 
             /* отправим менеджерам письмо о формировании заказа */
+            $tpl_alias = 'new_order_for_manager';
             foreach(UserController::getManagersEmails() as $manager){
                 $send = Yii::$app
                     ->mailer
                     ->compose(
                         ['html' => 'tpl', 'text' => 'tpl'],
-                        ['tpl_alias' => 'new_order_for_manager', 'vars' => $vars]
+                        ['tpl_alias' => $tpl_alias, 'vars' => $vars]
                     )
                     ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
                     ->setTo($manager['email'])
@@ -669,7 +671,7 @@ class OrdersController extends Controller
 
         if($order_uid){
             $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
-            // если заказ не этого клиента, то провал
+
             if($role['user'] && $order_uid == Yii::$app->user->getId()){
                 //return Yii::$app->response->redirect(['orders/index']);
                 $isAuthor = true;
@@ -680,9 +682,11 @@ class OrdersController extends Controller
                 //return Yii::$app->response->redirect(['orders/index']);
                 $isAuthor = true;
             }
+
+            if(Yii::$app->user->can('admin'))
+                $isAuthor = true;
         }
-        /*else
-            $isAuthor = true;*/
+
 
         return $isAuthor;
     }

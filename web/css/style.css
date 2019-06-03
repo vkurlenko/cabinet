@@ -87,10 +87,10 @@
 
 .auth a, .auth span, .auth button{
     /*text-transform: lowercase;*/
-    font-size: 14px;
+    font-size: 12px;
     color: #000;
     padding:0 10px 0 0;
-    display: inline-block;
+    /*display: inline-block;*/
     text-decoration: underline;
 }
 
@@ -99,8 +99,8 @@
 }
 
 .auth span.role{
-	position: absolute;
-	top: -20px;
+	/*position: absolute;
+	top: -20px;*/
 }
 
 .auth a:hover, .auth button:hover{
@@ -218,6 +218,11 @@ p.alert{
 /* /кнопки */
 
 /* мои заказы */
+.orders-index{
+	margin-top: 40px;
+	position: relative;
+}
+
 .user-info a{
 	color: #CE4C3E;
 	text-transform: lowercase;
@@ -244,6 +249,7 @@ span.status a{
 
 .orders-nav{
 	/*padding:20px 0;*/
+	position: relative;
 }
 
 .orders-nav a{
@@ -256,6 +262,66 @@ span.status a{
 .orders-nav a.active{
 	font-weight: bold;
 	text-decoration: none;
+}
+
+.date-range{
+	display: inline-block;
+	right: 0;
+	position: absolute;
+	padding-left: 50px;
+	top: 16px;
+	height: 32px;
+	background: url(/img/calendar.png) no-repeat;
+}
+
+.date-range a{
+	padding: 5px 0 0 0;
+}
+.date-range input {
+	width: 0;
+	border:0;
+}
+
+.daterangepicker{
+	-webkit-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+	-moz-box-shadow:    2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+	box-shadow:         2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+}
+
+
+.orders-search{
+	width: 500px;
+	position: absolute;
+	left: 350px;
+	top: 5px;
+}
+
+.orders-search label{
+	display: none;
+}
+
+.search-buttons{
+	position: absolute;
+	top: 0;
+	right: -69px;
+}
+
+.search-buttons .btn-search{
+	color: #fff;
+	background-color: #fff;
+	border-color: #fff;
+	border: 0;
+	height: 26px;
+	padding: 6px;
+	margin-right: 5px;
+}
+
+.label-status{
+	font-size: 12px;
+	border-radius: 10px;
+	padding-top: 4px;
+	/*margin-top: 7px;*/
+	display: inline-block;
 }
 /* /мои заказы */
 

@@ -20,10 +20,15 @@ function getClass($p)
 
 $uid = Yii::$app->request->get('uid') ? Yii::$app->request->get('uid') : '';
 
-//debug(Yii::$app->request->get('uid'));
 ?>
 
 <div class="orders-nav">
     <?=Html::a('Текущие заказы', '?active&uid='.$uid, ['class' => getClass('active')])?>
     <?=Html::a('История заказов', '?complete&uid='.$uid, ['class' => getClass('complete')])?>
+
+    <div class="date-range">
+        <?=Html::a('Выбрать за период', '#')?>
+        <input type="text" name="dates" value="<?=Yii::$app->request->get('daterange') ? Yii::$app->request->get('daterange') : '';?>">
+    </div>
+
 </div>

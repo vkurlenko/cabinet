@@ -83,7 +83,8 @@ $newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользова
                 'format' => 'raw',
                 'value' => function($model, $key, $index, $column) {
                     if(Yii::$app->request->get('role') == 'user')
-                        return Html::a('заказ от имени клиента', Url::to(['/orders/create', 'uid' => $model->id]), ['style' => 'color: #c33']);
+                        //return Html::a('заказ от имени клиента', Url::to(['/orders/create', 'uid' => $model->id]), ['style' => 'color: #c33']);
+                        return Html::a('заказ от имени клиента', Url::to(['/orders/index', 'uid' => $model->id, 'fuid' => $model->id ]), ['style' => 'color: #c33']);
                     else
                         return '';
                 }

@@ -15,15 +15,15 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'id') ?>
+    <?/*= $form->field($model, 'id') */?>
 
-    <?= $form->field($model, 'uid') ?>
+    <?/*= $form->field($model, 'uid') */?>
 
-    <?= $form->field($model, 'name') ?>
+    <?= $form->field($model, 'name')->textInput(['placeholder' => 'НАЙТИ ЗАКАЗ',]) ?>
 
-    <?= $form->field($model, 'filling') ?>
+    <?php // $form->field($model, 'filling') ?>
 
-    <?= $form->field($model, 'description') ?>
+    <?php // $form->field($model, 'description') ?>
 
     <?php // echo $form->field($model, 'deliv_date') ?>
 
@@ -41,9 +41,9 @@ use yii\widgets\ActiveForm;
 
     <?php // echo $form->field($model, 'status') ?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Search', ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton('Reset', ['class' => 'btn btn-outline-secondary']) ?>
+    <div class="form-group search-buttons">
+        <?= Html::submitButton(Html::img('/img/search.png'), ['class' => 'btn btn-search ']) ?>
+        <?= Html::resetButton('Сброс', ['class' => 'btn btn-outline-secondary', 'onclick'=>"document.location.href = '/orders/index'"]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

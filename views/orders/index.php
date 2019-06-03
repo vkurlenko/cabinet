@@ -3,8 +3,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\GridView;
 
-//debug(Yii::$app->request->get());
-
+use app\controllers\OrdersController;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\OrdersSearch */
@@ -13,7 +12,6 @@ use yii\grid\GridView;
 //\app\controllers\OrdersController::setLog();
 
 $this->title = 'Список заказов';
-
 //echo 'client = '.\app\controllers\UserController::isClient();
 
 if(\app\controllers\UserController::isClient()){
@@ -25,6 +23,8 @@ if(\app\controllers\UserController::isClient()){
 
 $this->params['breadcrumbs'][] = $this->title;
 
+// статусы заказа
+
 
 /* установим статус Выполнен */
 \app\controllers\OrdersController::setOrderComplete();
@@ -33,17 +33,15 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="orders-index">
 
-    <h1><?= Html::encode($this->title) ?>
-    <?php
-    if(Yii::$app->user->can('user')):
-    ?>
-    <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
-    <!--<span class="status"><?/*= Html::a('Создать новый произвольный заказ', ['create?free'], ['class' => 'garamond']) */?></span>-->
-    <?php
-    endif;
-    ?></h1>
+       <h1><?= Html::encode($this->title) ?>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+        <?=$this->render('_search', ['model' => $searchModel]); ?>
+
+        <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
+
+    </h1>
+
+
 	
 	<?php
     // панель Текущие заказы/История
@@ -58,8 +56,9 @@ $this->params['breadcrumbs'][] = $this->title;
         //'filterModel' => $searchModel,
         'rowOptions' => function ($model, $key, $index, $grid) {
 
-        // если менеджер не назначен => заказ новый, выделим жирным
-            $class = $model->manager ? '' : 'new';
+            // если менеджер не назначен => заказ новый, выделим жирным
+            if(in_array($model->status, [0, 10]) && !$model->manager)
+                $class = 'new';
             return ['class' => $class];
         },
         'columns' => [
@@ -99,7 +98,23 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'status',
                 'value' => function($data){
                     $stats = \app\models\Orders::getStatus();
-                    return '<strong>'.$stats[$data->status].'</strong>';
+
+                    $stat_style = [
+                        '0' => 'success',
+                        '1' => 'warning',
+                        '2' => 'warning',
+                        '3' => 'warning',
+                        '4' => 'warning',
+                        '5' => 'warning',
+                        '6' => 'warning',
+                        '7' => 'danger',
+
+                        '10' => 'success',
+                        '20' => 'primary',
+                        '30' => 'default',
+                        '40' => 'danger',
+                    ];
+                    return '<strong class="label label-'.$stat_style[$data->status].' label-status" >'.$stats[$data->status].'</strong>';
                 },
                 'format' => 'html'
             ],

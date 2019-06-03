@@ -6,6 +6,7 @@ use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Orders;
+use app\controllers\UserController;
 
 /**
  * OrdersSearch represents the model behind the search form of `app\models\Orders`.
@@ -49,8 +50,9 @@ class OrdersSearch extends Orders
             'query' => $query,
             'sort'=>[
                 'defaultOrder'=>[
-                    'manager'=>SORT_ASC,
                     'id'=>SORT_DESC,
+                    'status' => SORT_ASC,
+                    'manager'=>SORT_ASC,
                 ]
             ]
         ]);
@@ -70,6 +72,10 @@ class OrdersSearch extends Orders
         // проверим роль пользователя и для КЛИЕНТА выведем только его заказы,
         // а для остальных ролей - все заказы
         $role = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+        if(isset($params['fuid'])){
+            UserController::actionSetFakeUid($params['fuid']);
+        }
 
         // если в GET пришел id клиента, то выберем заказ только этого клиента
         // (работает только для manager+)
@@ -98,6 +104,20 @@ class OrdersSearch extends Orders
 		else
 			$status = ['not in', 'status', [20, 30]];
 
+        // выбор диапазона дат
+        if(isset($params['daterange'])){
+            $daterange = trim($params['daterange']);
+            if($daterange != ''){
+                $arr = explode(' - ', $daterange);
+                if(count($arr) == 2){
+                    $date_start = $arr[0];
+                    $date_end = $arr[1].' 23:59:59';
+
+                    $between = ['between', 'order_date', $date_start, $date_end];
+                }
+            }
+        }
+
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
@@ -107,7 +127,7 @@ class OrdersSearch extends Orders
 			'deliv_phone' => $this->deliv_phone,
             'cost' => $this->cost,
             'payed' => $this->payed,
-            'order_date' => $this->order_date,
+            //'order_date' => $this->order_date,
             'update_date' => $this->update_date,
             'manager' => $manager,
             //'status' => $status //$this->status,
@@ -117,7 +137,8 @@ class OrdersSearch extends Orders
             ->andFilterWhere(['like', 'filling', $this->filling])
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'address', $this->address])
-			->andFilterWhere($status);
+			->andFilterWhere($status)
+            ->andFilterWhere($between ? $between : [$this->order_date]);
 
         return $dataProvider;
     }

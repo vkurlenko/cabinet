@@ -7,6 +7,17 @@
  */
 use yii\helpers\Html;
 
+/* Fake user */
+$session = Yii::$app->session;
+if($session->get('fuid')){
+    $fuid = $session->get('fuid');
+    $fuid_info = \app\controllers\UserController::getUser($fuid);
+    $fuid_string = '<br><span class="role">клиент</span> '.Html::a($fuid_info['email'], '/orders/index?uid='.$fuid).Html::a('выйти', '/user/unset-fake-uid').'<br>';
+}
+else
+    $fuid_string = '';
+/* /Fake user */
+
 $arr = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
 
 $roles = '';
@@ -21,14 +32,11 @@ if(Yii::$app->user->isGuest){
 }
 else{
     $items[] = Html::beginForm(['/site/logout'], 'post')
-        . '<span>'.Html::a(Yii::$app->user->identity->email, '/orders/')
-        . '('.Yii::$app->user->getId().') '
-        . '<br><span class="role">'.$roles.'</span></span>'
-        . ''
-        . Html::submitButton(
-            'выйти',
-            ['class' => 'btn btn-link logout']
-        )
+        . '<span class="role">'.$roles.'</span><span>'.Html::a(Yii::$app->user->identity->email, '/orders/')
+        //. '('.Yii::$app->user->getId().') '
+        . '</span>'
+        . Html::submitButton('выйти',['class' => 'btn btn-link logout'])
+        . $fuid_string
         . Html::endForm();
 }
 

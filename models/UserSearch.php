@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\controllers\UserController;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
