@@ -35,19 +35,25 @@ if(null !== Yii::$app->request->get('free'))
 
 ?>
 
-<div class="orders-form row">
+<div class="orders-form row garamond">
 	<div class="col-md-8">
 		<?php $form = ActiveForm::begin(); ?>
 
         <?php
 /* только для менеджера */
         if(!$isClient):
+            $client = \app\controllers\UserController::getUser($model->uid);
         ?>
 
-		<?= $form->field($model, 'uid')
-            ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите заказчика'])
-            ->hint('Только зарегистрированные клиенты') ?>
-		
+		<?/*= $form->field($model, 'uid')
+            ->dropDownList(\app\controllers\OrdersController::getPersons('user'), ['prompt' => 'Выберите клиента'])
+            ->hint('Только зарегистрированные клиенты') */?>
+
+        <div class="form-group">
+            <label class="control-label">Клиент</label>
+            <span><?=$client['username']?></span>
+        </div>
+
 		<div class="form-group">
 			<label class="control-label">E-mail</label>
 			<span><?=\app\controllers\OrdersController::getUserEmail($model->uid)?></span>
@@ -67,26 +73,55 @@ if(null !== Yii::$app->request->get('free'))
         <?php
         endif;
 /* /только для клиента */
-
         ?>
-		
-		<?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
-		<?= $form->field($model, 'deliv_phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],])->hint('Кому предназначен заказ')  ?>
+        <?= $form->field($model, 'deliv_date')->widget(DatePicker::className(), $datepicker); ?>
 
-		<?/*= $form->field($model, 'name')->dropDownList($products, ['prompt' => 'Выберите торт']) */?>
         <?= $form->field($model, 'name')->textarea(['rows' => 2]) ?>
 
-		<?/*= $form->field($model, 'filling')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку']) */?>
-        <?= $form->field($model, 'filling')->textarea(['rows' => 2]) ?>
+        <?= $form->field($model, 'filling')->hiddenInput(['rows' => 2]) ?>
 
-		<?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
+        <div id="fill-field">
+        <?php
+        $other = '';
+        if($model->filling){
+            $arr = explode("|", $model->filling);
+
+            foreach($arr as $f) {
+                if(in_array($f, \app\controllers\OrdersController::getFills())){
+                    echo $form->field($model, 'fill[]')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку', 'value' => $f, 'style' => 'width: 80%'])->label('');
+                }
+                else{
+                    $other = $f;
+                }
+            }
+        }
+        else{
+            echo $form->field($model, 'fill[]')->dropDownList(\app\controllers\OrdersController::getFills(), ['prompt' => 'Выберите начинку', 'value' => $f, 'style' => 'width: 80%'])->label('');
+        }
+        ?>
+        <?= Html::a('Добавить начинку', '#', ['class' => 'add-fill']) ?>
+        </div>
+
+
+
+        <?= $form->field($model, 'fill[]')->textarea(['rows' => 2, 'value' => $other])->label('Дополнительные начинки') ?>
+
+
+        <?= $form->field($model, 'description')->textarea(['rows' => 6, 'value' => str_replace(['<br>', '<br />'], "\n", $model->description)]) ?>
 
         <?= $form->field($model, 'tasting_set')->checkbox([]);?>
 
-		<?= $form->field($model, 'deliv_date')->widget(DatePicker::className(), $datepicker); ?>
+        <?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
-		<?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
+        <?= $form->field($model, 'deliv_phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],])->hint('Кому предназначен заказ')  ?>
+
+        <?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
+
+
+		<?/*= $form->field($model, 'name')->dropDownList($products, ['prompt' => 'Выберите торт']) */?>
+
+
 
         <?php
         /* только для менеджера */
@@ -95,29 +130,53 @@ if(null !== Yii::$app->request->get('free'))
 
             <?= $form->field($model, 'cost')->textInput() ?>
 
-            <?= $form->field($model, 'payed')->textInput() ?>
+            <?/*= $form->field($model, 'payed')->textInput() */?>
 
-            <?= $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера', 'options' =>[ Yii::$app->user->getId() => ['Selected' => true]]]) ?>
+            <?php
+            if(Yii::$app->user->can('admin') || Yii::$app->user->can('director')){
+                echo $form->field($model, 'payed')->textInput();
+            }
+            else{
+                echo '<div class="bg-gray"><label class="control-label" for="orders-cost">Ранее оплачено</label><div>'.$model->payed.'</div></div>';
+            }
+            ?>
 
-            <?= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) ?>
+            <?php
+            if(Yii::$app->user->can('admin') || Yii::$app->user->can('director')){
+                echo $form->field($model, 'manager')->dropDownList(\app\controllers\OrdersController::getPersons('manager'), ['prompt' => 'Выберите менеджера', 'options' =>[ Yii::$app->user->getId() => ['Selected' => true]]]);
+            }
+            else{
+                if($model->manager){
+                    $manager = \app\controllers\UserController::getUser($model->manager);
+                    echo '<div class="bg-gray"><label class="control-label" for="orders-cost">Менеджер</label><div>'.$manager['username'].'</div></div>';
+                }
+            }
+            ?>
+
+            <?php
+            if(Yii::$app->user->can('admin') || Yii::$app->user->can('director')){
+                echo $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status);
+            }
+            else{
+                echo '<div class="bg-gray"><label class="control-label" for="orders-cost">Статус</label><div>'.\app\models\Orders::getStatus()[$model->status].'</div></div>';
+            }
+            ?>
+
+            <?/*= $form->field($model, 'status')->dropDownList(\app\models\Orders::getStatus())->hint('Прежний статус: '.$old_status) */?>
 
         <?php
         endif;
         /* /только для менеджера */
         ?>
 
-        <?php
-        //if($isFree):
-        ?>
-
+        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
+        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
         <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
 
-        <?php
-        //endif;
-        ?>
+        <span id="load-pic">Загрузить</span>
 
-		<div class="form-group">
-			<?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
+        <div class="form-group">
+			<?= Html::submitButton('Сохранить', ['class' => 'btn ext-btn']) ?>
 		</div>
 
 		<?php ActiveForm::end(); ?>
@@ -142,13 +201,11 @@ if(null !== Yii::$app->request->get('free'))
                     <div class="product-img-other">
                         <?php
                         foreach($images as $img) {
-
                                 ?>
                                 <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
                                     <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
                                 </div>
                             <?php
-
                         }
                             ?>
                     </div>
@@ -164,7 +221,7 @@ if(null !== Yii::$app->request->get('free'))
             }*/
 			?>
 
-			</div>			
+			</div>
 		</div>
 </div>
 

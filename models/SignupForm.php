@@ -32,6 +32,7 @@ class SignupForm extends Model
             ['email', 'string', 'max' => 255],
             ['email', 'unique', 'targetClass' => '\app\models\User', 'message' => 'Этот email уже используется'],
             ['phone', 'required'],
+            ['phone', 'match', 'pattern' => '/^\+7[0-9]{10}$/', 'message' => 'Введите номер в формате +71234567890'],
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
         ];
@@ -91,6 +92,15 @@ class SignupForm extends Model
 
             return null;
         }
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'username' => 'Ваше имя',
+            'phone' => 'Телефон',
+            'password' => 'Пароль'
+        ];
     }
 
 }

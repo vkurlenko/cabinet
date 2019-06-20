@@ -37,7 +37,15 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?=$this->render('_search', ['model' => $searchModel]); ?>
 
-        <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
+       <?php
+       $session = Yii::$app->session;
+       if($session->get('fuid')):
+       ?>
+       <span class="status"><?= Html::a('Создать новый заказ', ['create'], ['class' => 'garamond']) ?></span>
+       <?php
+       endif;
+       ?>
+
 
     </h1>
 
@@ -78,11 +86,11 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'name',
                 'value' => function($data){
-
-                        if (!\app\controllers\UserController::isClient())
+                    return Html::a($data->name, ['view', 'id' => $data->id]);
+                        /*if (!\app\controllers\UserController::isClient())
                             return Html::a($data->name, ['view', 'id' => $data->id]);
                         else
-                            return $data->name;
+                            return $data->name;*/
 
                 },
 				'format' => 'html'

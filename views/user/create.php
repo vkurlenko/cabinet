@@ -6,10 +6,19 @@ use app\controllers\UserController;
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
 
-$newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользователь';
+if(UserController::isManager() || UserController::isDirector()){
+    $newUserTitle = 'Клиент';
+    $label = 'Клиенты';
+}
+else{
+    $newUserTitle = 'Пользователь';
+    $label = 'Пользователи';
+}
+
+
 $this->title = 'Новый '.$newUserTitle;
 
-$this->params['breadcrumbs'][] = ['label' => UserController::isManager() ? 'Клиенты' : 'Пользователи', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $label, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-create">

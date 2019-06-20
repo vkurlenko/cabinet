@@ -16,6 +16,11 @@
 	border-left: 1px solid #000;
 	border-right: 1px solid #000;
 }
+
+.ext > .row .garamond{
+	font-family: 'EB Garamond', serif;
+}
+
 .logo{
     border-left:1px solid #000;
     border-right:1px solid #000;
@@ -155,6 +160,21 @@ span.status > strong{
 .bg-gray  > div{
 	background: #EBEBEB;
 	padding:10px !important;
+}
+
+.bg-gray > label{
+	margin-top: 15px;
+}
+
+.product-img-main{
+	/*width:400px;*/
+	height:400px;
+	text-align: center;
+}
+
+.product-img-main img{
+	max-height: 100%;
+	max-width: 100%;
 }
 
 .product-img img{
@@ -351,6 +371,15 @@ span.status a{
 	margin-top: 5px;
 }
 
+.product-img-other img{
+	opacity: .5;
+	max-width: 115px;
+}
+
+.product-img-other img.active{
+	opacity: 1;
+}
+
 .product-img-other div{
 	width: 33.3%;
 	float: left;
@@ -372,8 +401,39 @@ span.status a{
 }
 /* /произвольный заказ */
 
+#fill-field{
+	position: relative;
+}
+
+#fill-field .field-orders-fill{
+	position: relative;
+}
+
+.add-fill{
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+}
+
+.del-fill{
+	font-weight: bold;
+	color: red;
+	display: inline-block;
+	position: absolute;
+	right: 130px;
+	bottom:10px;
+	cursor: pointer;
+
+}
+
 tr.new{
 	font-weight: bold;
+}
+
+.form-control{
+	border-radius: 0;
+	border: 1px solid #000;
 }
 
 

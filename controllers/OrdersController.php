@@ -88,7 +88,6 @@ class OrdersController extends Controller
     public function actionView($id, $setstatus = null)
     {
 		if($setstatus){
-            
 			self::setStatus($id, $setstatus);
 
             return $this->redirect(['view', 'id' => $id]);
@@ -113,20 +112,24 @@ class OrdersController extends Controller
 
         // клиент может просмотреть заказ (и оплатить) только если статус "Выставлен счет"
         $order = Orders::findOne($id);
-//echo __LINE__; die;
         self::setProductImageFromCatalog($order);
-		if($order->status !== 1 && \app\controllers\UserController::isClient()){
-            //echo __LINE__; die;
 
+       /* if(!$order->manager && UserController::isManager()){
+            $order->manager = Yii::$app->user->getId();
+            $order->save(false);
+        }*/
+
+		/*if($order->status !== 1 && \app\controllers\UserController::isClient()){
             return $this->redirect(['index']);
         }
         else{
-            //echo __LINE__; die;
-
             return $this->render('view', [
                 'model' => $this->findModel($id),
             ]);
-        }
+        }*/
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
     }
 
     /**
@@ -145,19 +148,17 @@ class OrdersController extends Controller
         $model->update_date = date('Y-m-d H:i:s');
         $model->cost = 0;
         $model->payed = 0;
+        $model->description = nl2br($model->description);
 		
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
-
             $model->images = UploadedFile::getInstances($model, 'images');
             $model->UploadImages();
-
 
             $vars = [
                 'order_number' => $model->id,
                 'domain' => Yii::$app->params['mainDomain']
             ];
-
 
             /* отправим клиенту письмо о формировании заказа */
             $tpl_alias = 'new_order_for_client';
@@ -202,6 +203,8 @@ class OrdersController extends Controller
         ]);
     }
 
+
+
     /**
      * Updates an existing Orders model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -213,7 +216,15 @@ class OrdersController extends Controller
     {
         $model = $this->findModel($id);
 
+       //debug($model->fill); //ie;
+
         $model->update_date = date('Y-m-d H:i:s');
+        $model->description = str_replace("\n", "<br />", $model->description);
+
+        if(!$model->manager && UserController::isManager()){
+             $model->manager = Yii::$app->user->getId();
+             $model->save(false);
+        }
 		
 		$old_status = $model->status; // предыдущий статус заказа
 		$model->status = 7; // установим статус Заказ редактируется!!!
@@ -221,7 +232,7 @@ class OrdersController extends Controller
 			self::setStatus($id, $setstatus);
 		}
 
-        self::setProductImageFromCatalog($model);
+        //self::setProductImageFromCatalog($model);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
@@ -248,7 +259,10 @@ class OrdersController extends Controller
     {
         $i = $model->getImages();
 
-        if(count($i) == 1 && $i[0]->urlAlias == 'placeHolder'){
+        // проверим, создана ли ранее папка с картинками для этого продукта
+        $is_dir = is_dir($_SERVER['DOCUMENT_ROOT'].'/web/upload/store/Orders/Orders'.$model->id);
+
+        if(count($i) == 1 && $i[0]->urlAlias == 'placeHolder' && !$is_dir){
             if($model->product_id){
                 $product = self::getProduct($model->product_id);
                 $model->attachImage(Yii::$app->params['mainDocumentRoot'].'/images/restoran_menu/'.$product['ProductImgLarge']);
@@ -369,11 +383,11 @@ class OrdersController extends Controller
                 foreach($arr as $image){
 
                     if($mode == 'pdf'){
-                        $size = $image['isMain'] ? '300x' : '100x100';
+                        $size = $image['isMain'] ? '300x300' : '100x100';
                         $slash = Yii::$app->params['prevSlash'] ? '/' : '';
                     }
                     else{
-                        $size = $image['isMain'] ? '400x' : '115x115';
+                        $size = $image['isMain'] ? '400x400' : '115x115';
                         $slash = '/';
                     }
 
@@ -382,6 +396,7 @@ class OrdersController extends Controller
                         'isMain' => $image['isMain'], // главное изображение
                         'filePath' => Html::img($slash.$image->getPath($size), [
                             'data-origin' => $slash.$image->getPathToOrigin(),
+                            //'data-origin' => $slash.$image->getPath('400x400'),
                             'data-imgid' => $image['id'],
                             'data-modelid' => $model->id,
                             ])
@@ -415,9 +430,12 @@ class OrdersController extends Controller
             }
 
             foreach($model->getImages() as $img){
-                $model->setMainImage($img);
-                break;
+                if($img->filePath != 'no-image.png'){
+                    $model->setMainImage($img);
+                    break;
+                }
             }
+
 
             return $remove;
         }
@@ -604,7 +622,8 @@ class OrdersController extends Controller
 
         if($arr){
             foreach($arr as $product){
-                $fills[$product['id']] = $product['Name'];
+                //$fills[$product['id']] = $product['Name'];
+                $fills[$product['Name']] = $product['Name'];
             }
         }
 
@@ -683,7 +702,7 @@ class OrdersController extends Controller
                 $isAuthor = true;
             }
 
-            if(Yii::$app->user->can('admin'))
+            if(Yii::$app->user->can('admin') || Yii::$app->user->can('director'))
                 $isAuthor = true;
         }
 

@@ -23,7 +23,7 @@ use mihaildev\elfinder\ElFinder;
     <?= $form->field($model, 'tpl')->widget(CKEditor::className(),['editorOptions' => ElFinder::ckeditorOptions('elfinder',[])]); ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn ext-btn']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

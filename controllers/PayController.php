@@ -221,6 +221,7 @@ class PayController extends Controller
         $vars = array();
         $vars['userName'] = Yii::$app->params['merchantLogin']; //'логин';
         $vars['password'] = Yii::$app->params['merchantPwd']; //'пароль';
+        $vars['sessionTimeoutSecs'] = Yii::$app->params['sessionTimeoutSecs']; // время жизни сессии
 
         // ID платежа в магазине
         $vars['orderNumber'] = $pay->id; //$order_id;
@@ -234,6 +235,9 @@ class PayController extends Controller
 
             // URL куда клиент вернется в случае ошибки.
             $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+
+            $user = UserController::getUser(Yii::$app->user->getId());
+            $vars['jsonParams'] = '{"email":"'.$user['email'].'"}';
         }
         else{
             // URL куда клиент вернется в случае успешной оплаты.

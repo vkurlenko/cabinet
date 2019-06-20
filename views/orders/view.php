@@ -48,11 +48,12 @@ $this->params['breadcrumbs'][] = $this->title;
 $status     = Orders::getStatus()[$model->status];
 $fills      = OrdersController::getFills();
 $products   = OrdersController::getProducts();
+$manager = \app\controllers\UserController::getUser($model->manager);
 
 ?>
 <div class="orders-view">
 
-    <h1><?= Html::encode($this->title) ?><span class="status"><strong>Статус заказа:&nbsp;</strong><?=$status?></span></h1>
+    <h1><?= Html::encode($this->title) ?><span class="status"><strong>Статус заказа:&nbsp;</strong><?=$status?><br><strong>Менеджер:&nbsp;</strong><?=$manager['username']?></span></h1>
 
     <div class="orders-form row">
 		<div class="col-md-8">
@@ -66,45 +67,66 @@ $products   = OrdersController::getProducts();
                 <?php
                 endif;
                 ?>
-				<tr>
-					<td width="30%">Клиент</td>
-					<td width="70%"><?=$model->deliv_name?></td>
-				</tr>
-				<tr>
-					<td>Телефон</td>
-					<td><?=$model->deliv_phone?></td>
-				</tr>
-				<tr>
-					<td>E-mail</td>
-					<td><?=OrdersController::getUserEmail($model->uid)?></td>
-				</tr>
-				<tr>
-					<td>Дата доставки</td>
-					<td><?=$model->deliv_date?></td>
-				</tr>
-				<tr>
-					<td>Адрес доставки</td>
-					<td><?=$model->address?></td>
-				</tr>
-				<tr>
-					<td>Начинка</td>
-					<td><?/*=$fills[$model->filling]*/?><?=$model->filling?></td>
-				</tr>
-				<tr>
-					<td>Название торта</td>
-					<td><?/*=$products[$model->name]['name'];*/?><?=$model->name?></td>
-				</tr>
-				
-				<tr>
-					<td colspan=2 class="title">Описание заказа</td>					
-				</tr>
-				<tr>
-					<td colspan=2><?=$model->description?></td>					
-				</tr>
+
+                <?php
+                if(!$isUser):
+                    $client = \app\controllers\UserController::getUser($model->uid);
+                ?>
+                <tr>
+                    <td width="30%">Клиент</td>
+                    <td width="70%"><?=$client['username']?></td>
+                </tr>
+                <?php
+                endif;
+                ?>
+                <tr>
+                    <td>E-mail</td>
+                    <td><?=OrdersController::getUserEmail($model->uid)?></td>
+                </tr>
+                <tr>
+                    <td>Телефон</td>
+                    <td><?=$model->deliv_phone?></td>
+                </tr>
+                <tr>
+                    <td>Дата доставки</td>
+                    <td><?=$model->deliv_date?></td>
+                </tr>
+                <tr>
+                    <td>Название торта</td>
+                    <td><?/*=$products[$model->name]['name'];*/?><?=$model->name?></td>
+                </tr>
+                <tr>
+                    <td>Начинка</td>
+                    <td><?/*=$fills[$model->filling]*/?><?/*=$model->filling*/?><?php
+                        $arr = explode('|', $model->filling);
+                        $string = '';
+                        foreach($arr as $f){
+                            $string .= $f.'<br>';
+                        }
+                        echo  $string;
+                        ?></td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="title">Описание заказа</td>
+                </tr>
+                <tr>
+                    <td colspan=2><?=str_replace("\n", "<br />", $model->description)?></td>
+                </tr>
+
                 <tr>
                     <td>Дегустационный сет</td>
                     <td><?=$model->tasting_set ? 'Да' : 'Нет';?></td>
                 </tr>
+
+				<tr>
+					<td width="30%">Заказчик<!--Клиент--></td>
+					<td width="70%"><?=$model->deliv_name?></td>
+				</tr>
+				<tr>
+					<td>Информация о доставке<!--Адрес доставки--></td>
+					<td><?=$model->address?></td>
+				</tr>
+
 				<tr>
 					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
 				</tr>
@@ -130,7 +152,7 @@ $products   = OrdersController::getProducts();
                         <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
                     <?php
                     else:
-                        echo '<p class="alert alert-danger">Оплата невозможна, обратитесь к менеджеру</p>';
+                        //echo '<p class="alert alert-danger">Оплата невозможна, обратитесь к менеджеру</p>';
                     endif;
                     ?>
 
@@ -139,6 +161,21 @@ $products   = OrdersController::getProducts();
                     if($model->status == 5){
                         // если статус заказа "Оплачен"
                         echo Html::a('Доплата к заказу', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn red']);
+                    }
+                    elseif(in_array($model->status, [20, 30]) ){
+                        // если статус заказа "Оплачен"
+                        echo Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']);
+                        echo Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
+                            'class' => 'ext-btn black',
+                            'data' => [
+                            'confirm' => 'Вы действительно хотите удалить заказ?',
+                            'method' => 'post',
+                            ],
+                        ]);
+                    }
+                    elseif(!$model->manager){
+                        echo Html::a('Взять заказ', ['update', 'id' => $model->id], ['class' => 'ext-btn']);
+                        echo Html::a('Отмена', ['index'], ['class' => 'ext-btn']);
                     }
                     else{
                         ?>
@@ -149,16 +186,17 @@ $products   = OrdersController::getProducts();
                         <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
                         <div></div>
                         <?= Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']) ?>
+                        <?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
+                            'class' => 'ext-btn black',
+                            'data' => [
+                                'confirm' => 'Вы действительно хотите удалить заказ?',
+                                'method' => 'post',
+                            ],
+                        ]) ?>
                         <?php
                     }
                     ?>
-                    <?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
-                        'class' => 'ext-btn black',
-                        'data' => [
-                            'confirm' => 'Вы действительно хотите удалить заказ?',
-                            'method' => 'post',
-                        ],
-                    ]) ?>
+
                 <?php
                 endif;
                 ?>
@@ -190,8 +228,10 @@ $products   = OrdersController::getProducts();
 
                                 ?>
                                 <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
+                                    <?php if($img['id']):?>
                                     <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
-                                </div>
+                                    <?php endif;?>
+                                    </div>
                                 <?php
 
                             }
@@ -216,10 +256,16 @@ $products   = OrdersController::getProducts();
             </div>		-->
 		</div>
 	</div>
-	
+
+    <?php
+    if(!$isUser):
+    ?>
 	<div class="log">
 		<?=OrdersController::getLog($model->id);?>
 	</div>
+    <?php
+    endif;
+    ?>
 
 
 </div>

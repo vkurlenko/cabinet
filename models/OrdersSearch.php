@@ -85,18 +85,10 @@ class OrdersSearch extends Orders
         else
             $uid = $this->uid;
 		
+
         if($role['user']){
             $uid = Yii::$app->user->getId();
-			$manager = $this->manager;
-		}
-        /*elseif($role['manager']){
-			$manager = Yii::$app->user->getId();
-			//$uid = $this->uid;
-		}*/
-		else{
-            //$uid = $this->uid;
-			$manager = $this->manager;
-		}
+        }
 		
 		// текущие/история заказов
 		if(isset($params['complete']))
@@ -129,7 +121,7 @@ class OrdersSearch extends Orders
             'payed' => $this->payed,
             //'order_date' => $this->order_date,
             'update_date' => $this->update_date,
-            'manager' => $manager,
+            //'manager' => $manager,
             //'status' => $status //$this->status,
         ]);
 
@@ -138,7 +130,23 @@ class OrdersSearch extends Orders
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'address', $this->address])
 			->andFilterWhere($status)
+            //->andFilterWhere($manager)
             ->andFilterWhere($between ? $between : [$this->order_date]);
+
+        /*if($role['user']){
+            $query->andFilterWhere([
+                'manager' => $this->manager
+            ]);
+        }
+        else*/
+        if($role['manager'] && !isset($params['all'])){
+            $query->andFilterWhere(['in', 'manager', [0,  Yii::$app->user->getId()]]);
+        }
+        else{
+            $query->andFilterWhere([
+                'manager' => $this->manager
+            ]);
+        }
 
         return $dataProvider;
     }

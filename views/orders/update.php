@@ -16,10 +16,11 @@ $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id
 $this->params['breadcrumbs'][] = 'Редактировать';
 $old_status = $model::getStatus()[$old_status];;
 $status = $model::getStatus()[$model->status];
+$manager = \app\controllers\UserController::getUser($model->manager);
 ?>
 <div class="orders-update">
 
-    <h1><?= Html::encode($this->title) ?><span class="status"><strong>Статус заказа:&nbsp;</strong><?=$status?></span></h1>
+    <h1><?= Html::encode($this->title) ?><span class="status"><strong>Статус заказа:&nbsp;</strong><?=$status?><br><strong>Менеджер:&nbsp;</strong><?=$manager['username']?></span></h1>
 
     <?= $this->render('_form', [
         'model' => $model,

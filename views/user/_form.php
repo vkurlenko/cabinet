@@ -45,7 +45,7 @@ $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->as
     <?= $form->field($model, 'password_hash')->passwordInput()->hint('Чтобы изменить текущий пароль введите новый') ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn ext-btn']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

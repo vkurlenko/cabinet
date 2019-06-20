@@ -9,10 +9,25 @@ use yii\helpers\Url;
 /* @var $searchModel app\models\UserSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = UserController::isManager() ? 'Клиенты' : 'Пользователи';
+/*$this->title = UserController::isManager() ? 'Клиенты' : 'Пользователи';
 $this->params['breadcrumbs'][] = $this->title;
 
 $newUserTitle = UserController::isManager() ? 'Клиент' : 'Пользователь';
+
+$this->title = UserController::isDirector() ? 'Клиенты' : 'Пользователи';
+$this->params['breadcrumbs'][] = $this->title;
+
+$newUserTitle = UserController::isDirector() ? 'Клиент' : 'Пользователь';*/
+
+
+if(UserController::isManager() || UserController::isDirector()){
+    $newUserTitle = 'Клиент';
+    $this->title = 'Клиенты';
+}
+else{
+    $newUserTitle = 'Пользователь';
+    $this->title = 'Пользователи';
+}
 
 ?>
 <div class="user-index">

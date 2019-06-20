@@ -69,7 +69,11 @@ AppAsset::register($this);
     <div class="row">
         <div class="col-md-12 garamond">
             <?= $this->render('/blocks/flashes');?>
-
+            <?php
+            /*$user = \app\controllers\UserController::getUser(Yii::$app->user->getId());
+            echo $user['email'];
+            debug($user);*/
+            ?>
             <?=$content?>
         </div>
     </div>

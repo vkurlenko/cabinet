@@ -280,6 +280,21 @@ class UserController extends Controller
             return false;
     }
 
+    /**
+     * Является ли текущий пользователь директором
+     *
+     * @return bool
+     */
+    public function isDirector()
+    {
+        $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+
+        if(count($roles) == 1 && $roles['director'])
+            return true;
+        else
+            return false;
+    }
+
     public function getManagersAll()
     {
         $managers = ['admin', 'director', 'manager'];

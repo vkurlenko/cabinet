@@ -27,6 +27,7 @@ use rico\yii2images\models\Image;
 class Orders extends \yii\db\ActiveRecord
 {
     public $images;
+    public $fill = [];
 
     /**
      * {@inheritdoc}
@@ -53,7 +54,8 @@ class Orders extends \yii\db\ActiveRecord
         return [
             [['uid', 'name'], 'required'],
             [['uid', 'cost', 'payed', 'manager', 'status', 'tasting_set'], 'integer'],
-            [['filling', 'description', 'address', 'deliv_name', 'deliv_phone'], 'string'],
+            [['filling', 'description', 'address', 'deliv_name'], 'string'],
+            ['deliv_phone', 'match', 'pattern' => '/^\+7[0-9]{10}$/', 'message' => 'Введите номер в формате +71234567890'],
             [['deliv_date', 'order_date', 'update_date'], 'safe'],
             [['name'], 'string', 'max' => 255],
             [['images'], 'file', 'extensions' => 'png, jpg', 'maxFiles' => 3],
@@ -67,15 +69,15 @@ class Orders extends \yii\db\ActiveRecord
     {
         return [
             'id' => '№',
-            'uid' => 'Заказчик',
+            'uid' => 'Клиент',
             'name' => 'Название торта',
             'filling' => 'Начинка',
             'tasting_set' => 'Дегустационный сет',
             'description' => 'Описание заказа',
             'deliv_date' => 'Дата доставки',
-			'deliv_name' => 'Клиент',
+			'deliv_name' => 'Заказчик',
 			'deliv_phone' => 'Телефон',
-            'address' => 'Адрес доставки',
+            'address' => 'Информация о доставке',
             'cost' => 'Стоимость заказа',
             'payed' => 'Ранее оплачено',
             'order_date' => 'Дата заказа',
@@ -131,6 +133,24 @@ class Orders extends \yii\db\ActiveRecord
             return false;
         }*/
 
+    }
+
+    public function beforeSave($insert)
+    {
+        // если $insert== true значит, метод вызвался при создании записи, иначе при обновлении
+        $saveContinue = parent::beforeSave($insert); // если $saveContinue == false, сохранение будет отменено
+        if($insert)
+        {
+            // здесь, например, можно скорректировать сохраняемые данных
+        }
+
+        if($_POST['Orders']['fill']){
+            $this->filling = implode('|', $_POST['Orders']['fill']);
+        }
+
+        //echo 'beforesave'; die;
+
+        return $saveContinue ;
     }
 
 

@@ -37,7 +37,7 @@ $st = $model->status;
 			<table width="100%" class="order-view-table" > 
 
 				<tr>
-					<td width="30%">Клиент</td>
+					<td width="30%">Заказчик</td>
 					<td width="30%"><?=$model->deliv_name?></td>
                     <td rowspan="7"  width="40%" valign="top">
                         <!--<div class="product-img">
@@ -104,7 +104,14 @@ $st = $model->status;
 				</tr>
 				<tr>
 					<td>Начинка</td>
-					<td><?/*=$fills[$model->filling]*/?><?=$model->filling?></td>
+					<td><?/*=$fills[$model->filling]*/?><?/*=$model->filling*/?><?php
+                        $arr = explode('|', $model->filling);
+                        $string = '';
+                        foreach($arr as $f){
+                            $string .= $f.'<br>';
+                        }
+                        echo  $string;
+                        ?></td>
 				</tr>
 				<tr>
 					<td>Название торта</td>
