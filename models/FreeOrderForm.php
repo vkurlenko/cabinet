@@ -10,13 +10,16 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use yii\web\UploadedFile;
+use rico\yii2images\models\Image;
 
 class FreeOrderForm extends Model
 {
-    public $id;
+    public $id = 777;
     public $deliv_date;
-    public $description = 'test';
+    public $description = '';
     public $address;
+    public $primaryKey = "id";
 
     public $images;
 
@@ -38,24 +41,22 @@ class FreeOrderForm extends Model
         return [
             [['deliv_date', 'description', 'address'], 'required'],
             [['deliv_date', 'description', 'address'], 'string'],
-            [['images'], 'file', 'extensions' => 'png, jpg'],
+            [['images'], 'file', 'extensions' => 'png, jpg', 'maxFiles' => 3],
         ];
     }
 
-    public function uploadImages()
+    public function attributeLabels()
     {
-        if ($this->validate()) {
-            foreach($this->images as $file){
-                $path = 'upload/store/' . $file->baseName . '.' . $file->extension;
-                $file->saveAs($path);
-                $this->attachImage($path);
-                unlink($path);
-            }
-            return true;
-        }
-        else {
-            return false;
-        }
-
+        return [
+            'description' => 'Опишите желаемый торт',
+            'deliv_date' => 'Дата доставки',
+            'address' => 'Информация о доставке',
+            'images' => 'Прикрепите фотографии'
+        ];
     }
+
+
+
+
+
 }

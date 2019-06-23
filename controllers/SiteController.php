@@ -13,6 +13,7 @@ use app\models\User;
 use app\models\SignupForm;
 use app\models\PasswordResetRequestForm;
 use app\models\ResetPasswordForm;
+use app\controllers\SignupService;
 
 class SiteController extends Controller
 {
@@ -68,11 +69,17 @@ class SiteController extends Controller
     {
         //return $this->render('index');
 
+        $session = Yii::$app->session;
+
         if(!Yii::$app->user->getId())
             //return $this->redirect('/site/login');
             return $this->redirect('login');
         else{
-			return $this->redirect('/orders/index');
+            if($session->has('is-free-order')){
+                return $this->redirect('/orders/free-order-form');
+            }
+            else
+			    return $this->redirect('/orders/index');
 		}
     }
 
@@ -196,7 +203,7 @@ class SiteController extends Controller
 
     public function actionSignup()
     {
-        $model = new SignupForm();
+        /*$model = new SignupForm();
 
         if ($model->load(Yii::$app->request->post())) {
             if ($user = $model->signup()) {
@@ -208,7 +215,41 @@ class SiteController extends Controller
 
         return $this->render('signup', [
             'model' => $model,
+        ]);*/
+
+        $form = new SignupForm();
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            $signupService = new SignupService();
+
+            try{
+                $user = $signupService->signup($form);
+                Yii::$app->session->setFlash('success', 'Для подтверждения регистрации проверьте ваш почтовый ящик');
+                $signupService->sentEmailConfirm($user);
+                return $this->goHome();
+            } catch (\RuntimeException $e){
+                Yii::$app->errorHandler->logException($e);
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->render('signup', [
+            'model' => $form,
         ]);
+    }
+
+    public function actionSignupConfirm($token)
+    {
+        $signupService = new SignupService();
+
+        try{
+            $signupService->confirmation($token);
+            Yii::$app->session->setFlash('success', 'Вы успешно зарегистрированы на сайте');
+        } catch (\Exception $e){
+            Yii::$app->errorHandler->logException($e);
+            Yii::$app->session->setFlash('error', $e->getMessage());
+        }
+
+        return $this->goHome();
     }
 
     /**

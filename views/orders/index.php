@@ -75,9 +75,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'id',
                 'label' => '№',
                 'value' => function($data){
-                    if(!\app\controllers\UserController::isClient())
+                    /*if(!\app\controllers\UserController::isClient())
                         return Html::a($data->id, ['view', 'id' => $data->id ]);
-                    else
+                    else*/
                         return $data->id;
                 },
 				'format' => 'html'				
@@ -86,7 +86,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'name',
                 'value' => function($data){
-                    return Html::a($data->name, ['view', 'id' => $data->id]);
+
+                    if(OrdersController::checkMyOrder($data->uid, $data->manager)){
+                        return Html::a($data->name, ['view', 'id' => $data->id]);
+                    }
+                    else
+                        return $data->name;
+
+
                         /*if (!\app\controllers\UserController::isClient())
                             return Html::a($data->name, ['view', 'id' => $data->id]);
                         else
@@ -121,6 +128,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         '20' => 'primary',
                         '30' => 'default',
                         '40' => 'danger',
+                        '50' => 'danger',
                     ];
                     return '<strong class="label label-'.$stat_style[$data->status].' label-status" >'.$stats[$data->status].'</strong>';
                 },
@@ -136,6 +144,7 @@ $this->params['breadcrumbs'][] = $this->title;
 				'format' => 'html'
             ],
 			'deliv_name',
+            'deliv_date',
             [
                 'attribute' => 'manager',
                 'value' => function($data){
@@ -146,7 +155,7 @@ $this->params['breadcrumbs'][] = $this->title;
             
             //'filling:ntext',
             //'description:ntext',
-            //'deliv_date',
+
             //'address:ntext',
             //'cost',
             //'payed',
@@ -188,12 +197,20 @@ $this->params['breadcrumbs'][] = $this->title;
                             'class' => 'icon-delete'
                         ];
 
-                        return Html::a($icon, $url, $options);
+                        if(OrdersController::checkMyOrder($model->uid, $model->manager))
+                            return Html::a($icon, $url, $options);
+                        else
+                            return '';
                     },
                 ],
+
                 'visibleButtons' => [
-                    'view' => \Yii::$app->user->can('manager'),
-                    'update' => \Yii::$app->user->can('manager'),
+                    'view' => function($model){
+                        return \Yii::$app->user->can('manager') && OrdersController::checkMyOrder($model->uid, $model->manager);
+                    },
+                    'update' => function($model){
+                        return \Yii::$app->user->can('manager') && OrdersController::checkMyOrder($model->uid, $model->manager);
+                    },
                     'delete' => function($model){
                             if(\Yii::$app->user->can('user') && $model->status == 0 )
                                 return true;

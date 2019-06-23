@@ -34,7 +34,17 @@ $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->as
     ?>
         <?= $form->field($model, 'email')->textInput() ?>
         <?= $form->field($model, 'status')->dropDownList([1 => 'активен', 0 => 'отключен'], ['options' => [$model->status => ['selected' => true]]]) ?>
-        <?= $form->field($model, 'role')->dropDownList(arrDropDownRoles(), ['options' => [$role['item_name'] => ['selected' => true]]]) ?>
+
+        <?php
+        if(\app\controllers\UserController::isManager()):?>
+            <?= $form->field($model, 'role')->hiddenInput(['value' => 'user'])->label('Роль: клиент') ?>
+        <?php
+        else:?>
+            <?= $form->field($model, 'role')->dropDownList(arrDropDownRoles(), ['options' => [$role['item_name'] => ['selected' => true]]]) ?>
+        <?php
+        endif;
+        ?>
+
     <?php
     endif;
     ?>

@@ -252,6 +252,8 @@ class PayController extends Controller
         // Описание заказа, не более 24 символов, запрещены % + \r \n
         $vars['description'] = 'Заказ №' . $order_id . ' на '.Yii::$app->params['subDomain'];
 
+        //debug($vars); die;
+
         $ch = curl_init('https://3dsec.sberbank.ru/payment/rest/registerPreAuth.do?' . http_build_query($vars));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

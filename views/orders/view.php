@@ -38,8 +38,6 @@ if(Yii::$app->request->get('hash')){
 }
 /* /если пришел hash, то проверим его */
 
-
-
 $this->title = 'Заказ №'.$model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
@@ -52,6 +50,8 @@ $manager = \app\controllers\UserController::getUser($model->manager);
 
 ?>
 <div class="orders-view">
+
+    <?= $model->status == 50 ? '<p class="alert alert-danger"><strong>'.$status.'</strong> (истек срок ожидания оплаты)</p>' : '' ?>
 
     <h1><?= Html::encode($this->title) ?><span class="status"><strong>Статус заказа:&nbsp;</strong><?=$status?><br><strong>Менеджер:&nbsp;</strong><?=$manager['username']?></span></h1>
 
@@ -127,6 +127,16 @@ $manager = \app\controllers\UserController::getUser($model->manager);
 					<td><?=$model->address?></td>
 				</tr>
 
+                <?php
+                if($model->tasting_set):?>
+
+                <tr>
+                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=Yii::$app->params['testingSetCost']?></span> <span class="currency">руб.</span></td>
+                </tr>
+                <?php
+                endif;
+                ?>
+
 				<tr>
 					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
 				</tr>
@@ -134,7 +144,7 @@ $manager = \app\controllers\UserController::getUser($model->manager);
 					<td colspan=2 class="cost-title bg-gray"><div>Ранее оплачено: <span class="sum"><?=$model->payed?></span> <span class="currency">руб.</span></div></td>					
 				</tr>
 				<tr>
-					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?=OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
+					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?= OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
 				</tr>
 				
 			</table>
@@ -146,7 +156,8 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                     // если клиент или переход по ссылке с hash для оплаты
 
                     // если статус Выставлен счет, то кнопка оплаты
-                    if($model->status === 1):
+                    //if($model->status === 1):
+                    if(in_array($model->status, [1, 4])):
                     ?>
                         <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
                         <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
@@ -162,8 +173,7 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                         // если статус заказа "Оплачен"
                         echo Html::a('Доплата к заказу', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn red']);
                     }
-                    elseif(in_array($model->status, [20, 30]) ){
-                        // если статус заказа "Оплачен"
+                    /*elseif(in_array($model->status, [20, 30]) ){
                         echo Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']);
                         echo Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
                             'class' => 'ext-btn black',
@@ -172,20 +182,23 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                             'method' => 'post',
                             ],
                         ]);
-                    }
+                    }*/
                     elseif(!$model->manager){
                         echo Html::a('Взять заказ', ['update', 'id' => $model->id], ['class' => 'ext-btn']);
                         echo Html::a('Отмена', ['index'], ['class' => 'ext-btn']);
                     }
+                    elseif(in_array($model->status, [20, 30]) ){
+
+                    }
                     else{
                         ?>
                         <?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
-                        <?= Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) ?>
+                        <?= !in_array($model->status, [1, 4]) ? Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) : '' ?>
                         <div></div>
                         <?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
                         <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
                         <div></div>
-                        <?= Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']) ?>
+                        <?= $model->status == 4 ? Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']) : '' ?>
                         <?= Html::a('Удалить заказ', ['delete', 'id' => $model->id, 'setstatus' => 30], [
                             'class' => 'ext-btn black',
                             'data' => [
@@ -225,15 +238,13 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                         <div class="product-img-other">
                             <?php
                             foreach($images as $img) {
-
                                 ?>
                                 <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
                                     <?php if($img['id']):?>
-                                    <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
+                                    <?=  !$isUser ?  Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) : '' ?>
                                     <?php endif;?>
                                     </div>
                                 <?php
-
                             }
                             ?>
                         </div>

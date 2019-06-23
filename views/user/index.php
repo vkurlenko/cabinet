@@ -75,7 +75,17 @@ else{
             [
                 'attribute' => 'status',
                 'value' => function($data){
-                    return $data->status ? 'активен' : 'отключен';
+                    $status = '';
+                    switch ($data->status){
+                        case 0: $status = 'отключен';
+                            break;
+                        case 1: $status = 'активен';
+                            break;
+                        case 5: $status = 'не подтвержден';
+                            break;
+                    }
+                    //return $data->status ? 'активен' : 'отключен';
+                    return $status;
                 },
                 'format' => 'html'
             ],

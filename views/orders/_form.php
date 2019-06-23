@@ -40,7 +40,7 @@ if(null !== Yii::$app->request->get('free'))
 		<?php $form = ActiveForm::begin(); ?>
 
         <?php
-/* только для менеджера */
+        /* только для менеджера */
         if(!$isClient):
             $client = \app\controllers\UserController::getUser($model->uid);
         ?>
@@ -60,9 +60,9 @@ if(null !== Yii::$app->request->get('free'))
 		</div>
 
         <?php
-/* /только для менеджера */
+        /* /только для менеджера */
 
-/* только для клиента */
+        /* только для клиента */
         else:
             ?>
 
@@ -72,7 +72,7 @@ if(null !== Yii::$app->request->get('free'))
 
         <?php
         endif;
-/* /только для клиента */
+        /* /только для клиента */
         ?>
 
         <?= $form->field($model, 'deliv_date')->widget(DatePicker::className(), $datepicker); ?>
@@ -83,8 +83,9 @@ if(null !== Yii::$app->request->get('free'))
 
         <div id="fill-field">
         <?php
+        //echo 'filing = '.$model->filling;
         $other = '';
-        if($model->filling){
+        if($model->filling && trim($model->filling) != '|'){
             $arr = explode("|", $model->filling);
 
             foreach($arr as $f) {
@@ -103,18 +104,30 @@ if(null !== Yii::$app->request->get('free'))
         <?= Html::a('Добавить начинку', '#', ['class' => 'add-fill']) ?>
         </div>
 
-
-
         <?= $form->field($model, 'fill[]')->textarea(['rows' => 2, 'value' => $other])->label('Дополнительные начинки') ?>
-
 
         <?= $form->field($model, 'description')->textarea(['rows' => 6, 'value' => str_replace(['<br>', '<br />'], "\n", $model->description)]) ?>
 
         <?= $form->field($model, 'tasting_set')->checkbox([]);?>
 
+        <?php
+        /* ??????????????????????? */
+        /*if($isClient){
+            $client = \app\controllers\UserController::getUser(Yii::$app->user->getId());
+            $deliv_name = $client['username'];
+            $deliv_phone = $client['phone'];
+        }
+        else{
+            $deliv_name = '';
+            $deliv_phone = '';
+        }
+        $model->deliv_phone = $deliv_phone;*/
+        ?>
+        <?/*= $form->field($model, 'deliv_name')->textInput(['value' => $deliv_name])->hint('Кому предназначен заказ') */?>
+        <?/* ??????????????????????? */?>
         <?= $form->field($model, 'deliv_name')->textInput()->hint('Кому предназначен заказ') ?>
 
-        <?= $form->field($model, 'deliv_phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask'],])->hint('Кому предназначен заказ')  ?>
+        <?= $form->field($model, 'deliv_phone')->widget(\yii\widgets\MaskedInput::className(), ['mask' => Yii::$app->params['phoneMask']])->hint('Кому предназначен заказ')  ?>
 
         <?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
 
@@ -170,8 +183,8 @@ if(null !== Yii::$app->request->get('free'))
         ?>
 
         <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
-        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
-        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
+        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label('');; ?>
+        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label('');; ?>
 
         <span id="load-pic">Загрузить</span>
 

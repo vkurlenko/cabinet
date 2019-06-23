@@ -61,8 +61,6 @@ class OrdersSearch extends Orders
 		
 		//debug($params); die;
 
-
-
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');

@@ -170,6 +170,7 @@ span.status > strong{
 	/*width:400px;*/
 	height:400px;
 	text-align: center;
+	background: #ccc;
 }
 
 .product-img-main img{
@@ -179,6 +180,40 @@ span.status > strong{
 
 .product-img img{
 	max-width: 100%;
+}
+
+.product-img-other{
+	margin-top: 5px;
+}
+
+.product-img-other img{
+	opacity: .5;
+	max-width: 115px;
+}
+
+.product-img-other img.active{
+	opacity: 1;
+}
+
+.product-img-other div{
+	width: 33.3%;
+	float: left;
+	text-align: center;
+	/*background: #ccc;*/
+}
+
+.product-img-other div:first-child{
+	text-align: left;
+}
+
+.product-img-other div:last-child{
+	text-align: right;
+}
+
+.product-img-del{
+	display: inline-block;
+	text-align: center;
+	width: 100%;
 }
 
 span.sum{
@@ -367,38 +402,6 @@ span.status a{
 	border: 0;
 }
 
-.product-img-other{
-	margin-top: 5px;
-}
-
-.product-img-other img{
-	opacity: .5;
-	max-width: 115px;
-}
-
-.product-img-other img.active{
-	opacity: 1;
-}
-
-.product-img-other div{
-	width: 33.3%;
-	float: left;
-	text-align: center;
-}
-
-.product-img-other div:first-child{
-	text-align: left;
-}
-
-.product-img-other div:last-child{
-	text-align: right;
-}
-
-.product-img-del{
-	display: inline-block;
-	text-align: center;
-	width: 100%;
-}
 /* /произвольный заказ */
 
 #fill-field{

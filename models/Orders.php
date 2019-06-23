@@ -23,11 +23,13 @@ use rico\yii2images\models\Image;
  * @property string $update_date дата изменения заказа
  * @property int $manager менеджер
  * @property int $status статус
+ * @property int $images картинки
  */
 class Orders extends \yii\db\ActiveRecord
 {
     public $images;
     public $fill = [];
+    //public $primaryKey = "id";
 
     /**
      * {@inheritdoc}
@@ -84,10 +86,14 @@ class Orders extends \yii\db\ActiveRecord
             'update_date' => 'Дата изменения заказа',
             'manager' => 'Менеджер',
             'status' => 'Статус',
-
             'images' => 'Прикрепите фотографии'
         ];
     }
+
+    /*public static function primaryKey()
+    {
+        return ["id"];
+    }*/
 
     /**
      * статусы заказа
@@ -108,6 +114,7 @@ class Orders extends \yii\db\ActiveRecord
 			20 => 'Выполнен',           // заказ автоматически переходит в состояние выполнен в 23.30 в день доставки
 			30 => 'Удален',             // можно удалить в любом статусе до отправлен в банк, если оплачено 0
             40 => 'Перезаказ',          // изменение номера заказа копированием в новый заказ
+            50 => 'Оплата отменена',          // изменение номера заказа копированием в новый заказ
         ];
     }
 
@@ -123,6 +130,7 @@ class Orders extends \yii\db\ActiveRecord
             //echo 'id='.$this->id;
             foreach($this->images as $file){
                 $path = 'upload/store/' . $file->baseName . '.' . $file->extension;
+                //echo $path;
                 $file->saveAs($path);
                 $this->attachImage($path);
                 unlink($path);

@@ -88,19 +88,46 @@ class UserController extends Controller
 
         if ($model->load(Yii::$app->request->post())/* && $model->save()*/) {
 
+            $post = Yii::$app->request->post();
+
             // сохраним пароль
-            $model->setPassword($model->password_hash);
+            $model->setPassword($post['User']['password_hash']);
             $model->generateAuthKey();
 
             $model->save();
 
-            $post = Yii::$app->request->post();
-
+            //debug($post['User']); die;
             if($post['User']['role']){
                 $role = new AuthAssignment();
                 $role->user_id = $model->id;
                 $role->item_name = $post['User']['role'];
                 $role->save(false);
+
+                $vars = [
+                    'user_name' => $model->username,
+                    'user_role' => self::getRoleName($post['User']['role']),
+                    'user_login' => $model->email,
+                    'user_password' => $post['User']['password_hash'],
+                    'domain' => Yii::$app->params['mainDomain']
+                ];
+
+                $tpl_alias = 'new_role';
+
+                $send = Yii::$app
+                    ->mailer
+                    ->compose(
+                        ['html' => 'tpl', 'text' => 'tpl'],
+                        ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                    )
+                    ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                    ->setTo($model->email)
+                    ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                    ->send();
+
+                if($send)
+                    Yii::$app->session->setFlash('success', 'Пользователь '.$model->username.' успешно зарегистрирован!');
+                else
+                    Yii::$app->session->setFlash('danger', 'Ошибка регистрации пользователя '.$model->username);
             }
 
             return $this->redirect(['view', 'id' => $model->id]);

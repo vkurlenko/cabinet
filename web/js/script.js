@@ -139,13 +139,15 @@ $(document).ready(function(){
         $(this).append('<span class="del-fill">X</span>');
     })
 
-    $('.del-fill').on('click', function(){
-        console.log('del');
-        $(this).parents('.field-orders-fill').eq(0).remove();
+    $('#fill-field').on('click', '.del-fill', function(){
+        if($('.del-fill').length > 1){
+            console.log($('.del-fill').length);
+            $(this).parents('.field-orders-fill').eq(0).remove();
+        }
     })
 
+
     $('.add-fill').on('click', function(){
-        //$(this).prepend('html');
         $(".field-orders-fill").eq(0).clone().addClass('added').appendTo("#fill-field");
         $(".added:last-child select").prop('selectedIndex',0);
         return false;

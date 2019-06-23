@@ -21,6 +21,7 @@ use app\models\FreeOrderForm;
 use yii\web\UploadedFile;
 use rico\yii2images\models\Image;
 
+
 /**
  * OrdersController implements the CRUD actions for Orders model.
  */
@@ -43,7 +44,7 @@ class OrdersController extends Controller
                 'rules' => [
                     [
                         'allow' => true,
-                        'actions' => ['view', 'success', 'error'],
+                        'actions' => ['view', 'success', 'error', 'free-order-form'],
                         'roles' => ['user','?']
                     ],
                     [
@@ -88,9 +89,15 @@ class OrdersController extends Controller
     public function actionView($id, $setstatus = null)
     {
 		if($setstatus){
-			self::setStatus($id, $setstatus);
 
-            return $this->redirect(['view', 'id' => $id]);
+            if($setstatus == 40){
+                $new_order_id = self::doStatusAction($id, 40);
+                return $this->redirect(['update', 'id' => $new_order_id]);
+            }
+            else{
+                self::setStatus($id, $setstatus);
+                return $this->redirect(['view', 'id' => $id]);
+            }
 		}
 
 		// если пришел id платежа (fd010571-eae9-70aa-8380-a60404b424c3),
@@ -107,6 +114,10 @@ class OrdersController extends Controller
                     $order->payed = $order->payed + $res['amount'] / 100;
                     $order->save(false);
                 }
+            }
+            else{
+                Yii::$app->session->setFlash('danger', $res['actionCodeDescription']);
+                self::setStatus($id, 50); // оплата отменена
             }
         }
 
@@ -149,9 +160,11 @@ class OrdersController extends Controller
         $model->cost = 0;
         $model->payed = 0;
         $model->description = nl2br($model->description);
+        $model->manager = Yii::$app->user->getId();
 		
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
+            //debug($model);
             $model->images = UploadedFile::getInstances($model, 'images');
             $model->UploadImages();
 
@@ -163,6 +176,10 @@ class OrdersController extends Controller
             /* отправим клиенту письмо о формировании заказа */
             $tpl_alias = 'new_order_for_client';
             $user = UserController::getUser($model->uid);
+
+            // прикрепим бланк заказа
+            $blank_content = Yii::$app->runAction('orders/pdf', ['id' => $model->id, 'mode' => 'email']);
+            $blank_filename = 'Бланк заказа №'.$model->id.'.pdf';
 
             $send = Yii::$app
                 ->mailer
@@ -176,7 +193,11 @@ class OrdersController extends Controller
                 ->setTo($user->email)
                 //->setSubject('Заказ №'.$model->id.' на сайте '.Yii::$app->params['mainDomain'].' успешно сформирован ')
                 ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                ->attachContent($blank_content, ['fileName' => $blank_filename, 'contentType' => 'application/pdf'])
                 ->send();
+            if($send)
+                Yii::$app->session->setFlash('success', 'Письмо о создании заказа №'.$model->id.' отправлено клиенту на адрес '.$user->email);
+
             /* /отправим клиенту письмо о формировании заказа */
 
             /* отправим менеджерам письмо о формировании заказа */
@@ -299,9 +320,50 @@ class OrdersController extends Controller
 
         if($model->load(Yii::$app->request->post()) /*&& $model->validate()*/){
 
-            //debug($model); die;
-            $freeorder = new Orders();
+            $session = Yii::$app->session;
 
+            // если клиент еще не авторизован
+            if(!Yii::$app->user->getId()){
+
+                // флаг, что есть произвольный заказ неизвестного клиента
+                $session->set('is-free-order', true);
+
+                /* запишем в сессию загружаемые файлы */
+                $files = [];
+
+                foreach($_FILES['FreeOrderForm']['tmp_name']['images'] as $k => $file){
+                    $orig_name = $_FILES['FreeOrderForm']['name']['images'][$k];
+                    $arr = explode('.', $orig_name);
+                    $ext = $arr[1];
+                    $path = $_SERVER['DOCUMENT_ROOT'].'/web/upload/temp/';
+                    $actual_image_name =  Yii::$app->security->generateRandomString(12).'.'.$ext;
+
+                    if(move_uploaded_file($file, $path.$actual_image_name)){
+                        $files[] = [
+                            'full_path' => $path.$actual_image_name,
+                            'file_name' => $actual_image_name,
+                        ];
+                    }
+                }
+
+                if($files){
+                    $session->set('free-order-images', serialize($files));
+                }
+                /* /запишем в сессию загружаемые файлы */
+
+                // запишем в сессию данные заказа
+                $session['free-order'] = [
+                    'description' => $model->description,
+                    'deliv_date' => $model->deliv_date,
+                    'address' => $model->address
+                ];
+
+                // отправим на авторизацию
+                return $this->redirect(['site/login']);
+            }
+
+            /* если авторизован */
+            $freeorder = new Orders();
             $freeorder->uid = Yii::$app->user->getId();
             $freeorder->order_date = date('Y-m-d H:i:s');
             $freeorder->update_date = date('Y-m-d H:i:s');
@@ -316,32 +378,72 @@ class OrdersController extends Controller
             $freeorder->manager = 0;
             $freeorder->status =  0;
 
-            //echo $freeorder->id; die;
+            $save = $freeorder->save();
 
-            $model->images = UploadedFile::getInstances($model, 'images');
-            $model->UploadImages();
+            // если в сессии есть загруженные картинки, то прикрепим их к заказу
+            if($session['free-order-images']){
+                $arr = unserialize($session['free-order-images']);
+                foreach($arr as $k => $image){
+                    $file = $image['full_path'];
+                    $freeorder->attachImage($file);
+                    unlink($file);
+                }
 
-            if ($freeorder->save()) {
+                unset($session['is-free-order']);
+                unset($session['free-order']);
+                unset($session['free-order-images']);
+            }
+            //else{
+                $freeorder->images = UploadedFile::getInstances($model, 'images');
+                $freeorder->UploadImages();
+            //}
 
+
+            if ($save && Yii::$app->user->getId()) {
                 /* отправим клиенту письмо о формировании заказа */
+                $vars = [
+                    'order_number' => $freeorder->id,
+                    'domain' => Yii::$app->params['mainDomain']
+                ];
+
+                $tpl_alias = 'new_order_for_client';
                 $user = UserController::getUser($freeorder->uid);
+
+                // прикрепим бланк заказа
+                $blank_content = Yii::$app->runAction('orders/pdf', ['id' => $freeorder->id, 'mode' => 'email']);
+                $blank_filename = 'Бланк заказа №'.$freeorder->id.'.pdf';
 
                 $send = Yii::$app
                     ->mailer
                     ->compose(
-                        ['html' => 'newOrder-html', 'text' => 'newOrder-html'],
-                        ['model' => $freeorder]
+                        ['html' => 'tpl', 'text' => 'tpl'],
+                        ['tpl_alias' => $tpl_alias, 'vars' => $vars]
                     )
                     ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
                     ->setTo($user->email)
-                    ->setSubject('Заказ №'.$freeorder->id.' на сайте '.Yii::$app->params['mainDomain'].' успешно сформирован ')
+                    ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                    ->attachContent($blank_content, ['fileName' => $blank_filename, 'contentType' => 'application/pdf'])
                     ->send();
                 /* /отправим клиенту письмо о формировании заказа */
 
-                return $this->redirect('/orders/index');
+                /* отправим менеджерам письмо о формировании заказа */
+                $tpl_alias = 'new_order_for_manager';
+                foreach(UserController::getManagersEmails() as $manager){
+                    $send = Yii::$app
+                        ->mailer
+                        ->compose(
+                            ['html' => 'tpl', 'text' => 'tpl'],
+                            ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                        )
+                        ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                        ->setTo($manager['email'])
+                        ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                        ->send();
+                }
+                /* /отправим менеджерам письмо о формировании заказа */
             }
 
-            return $this->render('/orders/index');
+            return $this->redirect(['orders/index']);
         }
 
         return $this->render('free-form', ['model' => $model]);
@@ -387,12 +489,13 @@ class OrdersController extends Controller
                         $slash = Yii::$app->params['prevSlash'] ? '/' : '';
                     }
                     else{
-                        $size = $image['isMain'] ? '400x400' : '115x115';
+                        $size = $image['isMain'] ? '400x' : '115x115';
                         $slash = '/';
                     }
 
                     $img[] = [
                         'id' => $image['id'],
+                        //'isMain' => $image['isMain'], // главное изображение
                         'isMain' => $image['isMain'], // главное изображение
                         'filePath' => Html::img($slash.$image->getPath($size), [
                             'data-origin' => $slash.$image->getPathToOrigin(),
@@ -728,7 +831,8 @@ class OrdersController extends Controller
 
         if($order_id){
             $order = Orders::findOne($order_id);
-            $sum = $order->tasting_set ? ((int)$order->cost + Yii::$app->params['testingSetCost']) : (int)$order->cost;
+            //$sum = $order->tasting_set ? ((int)$order->cost + Yii::$app->params['testingSetCost']) : (int)$order->cost;
+            $sum = (int)$order->cost;
         }
 
         return $sum;
@@ -849,6 +953,9 @@ class OrdersController extends Controller
         $model = $this->findModel($id);
         $this->layout = 'text'; //'pdf';
 
+        $order = Orders::findOne($id);
+        self::setProductImageFromCatalog($order);
+
         Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
         $headers = Yii::$app->response->headers;
         $headers->add('Content-Type', 'application/pdf');
@@ -932,7 +1039,6 @@ class OrdersController extends Controller
                         $link = 'Ссылка на оплату не нужна';
                     }
                     else{
-
                         // ссылка на оплату
                         $link = self::getPayLink($order_id);
                     }
@@ -940,7 +1046,6 @@ class OrdersController extends Controller
                     $vars = [
                         'link' => Html::a($link, $link)
                     ];
-
 
                     $send = Yii::$app
                         ->mailer
@@ -958,6 +1063,36 @@ class OrdersController extends Controller
                         Yii::$app->session->setFlash('success', 'Ссылка на оплату по заказу №'.$order_id.' отправлена клиенту на адрес '.$user->email);
                     else
                         Yii::$app->session->setFlash('danger', 'Ошибка отправки ссылки на оплату по заказу №'.$order_id);
+
+                    break;
+
+                // установлен статус Оплата при доставке
+                case 6:
+                    // прикрепим бланк заказа
+                    $blank_content = Yii::$app->runAction('orders/pdf', ['id' => $order_id, 'mode' => 'email']);
+                    $blank_filename = 'Бланк заказа №'.$order_id.'.pdf';
+                    $tpl_alias = 'pay_deliv';
+                    $vars = [
+                        'order_number' => $order_id
+                    ];
+
+                    $send = Yii::$app
+                        ->mailer
+                        ->compose(
+                            ['html' => 'tpl', 'text' => 'tpl'],
+                            ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                        )
+                        ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                        ->setTo($user->email)
+                        ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                        ->attachContent($blank_content, ['fileName' => $blank_filename, 'contentType' => 'application/pdf'])
+                        ->send();
+
+                    if($send)
+                        Yii::$app->session->setFlash('success', 'Бланк заказ №'.$order_id.' отправлен клиенту на адрес '.$user->email);
+                    else
+                        Yii::$app->session->setFlash('danger', 'Ошибка отправки бланка заказ №'.$order_id);
+
 
                     break;
 
@@ -995,8 +1130,17 @@ class OrdersController extends Controller
                         //either print errors or redirect
                         Yii::$app->session->setFlash('danger', $order_copy->getErrors());
                     }
-                    else
-                        Yii::$app->session->setFlash('success', 'Перезаказ успешно зарегистрирован '.Html::a('Перейти в новый заказ', '/orders/view?id='.$order_copy->id));
+                    else{
+                        $where = ['itemId' => $order_id];
+                        \app\models\Image::updateAll(['itemId' => $order_copy->id], $where);
+
+                        $order = Orders::find()->where(['id' => $order_id])->one();
+                        $order->status = 30;
+                        $order->save();
+
+                        Yii::$app->session->setFlash('success', 'Перезаказ успешно зарегистрирован под номером '.$order_copy->id);
+                        return $order_copy->id;
+                    }
                     break;
 
                 default: break;

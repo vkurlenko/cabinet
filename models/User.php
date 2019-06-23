@@ -26,6 +26,7 @@ class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 1;
+    const STATUS_WAIT  = 5;
 
     /**
      * @inheritdoc
@@ -52,9 +53,10 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            ['status', 'in', 'range' => [self::STATUS_DELETED, self::STATUS_WAIT, self::STATUS_ACTIVE]],
             [['username', 'email'], 'required'],
-            [['phone'], 'string'],
+            ['phone', 'required'],
+            ['phone', 'match', 'pattern' => '/^\+7[0-9]{10}$/', 'message' => 'Введите номер в формате +71234567890'],
         ];
     }
 
@@ -82,7 +84,8 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        //return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['username' => $username]);
     }
 
     /**
@@ -114,7 +117,7 @@ class User extends ActiveRecord implements IdentityInterface
             'username' => 'Имя пользователя',
             'role' => 'Роль',
             'status' => 'Состояние',
-            'email' => 'Логин',
+            'email' => 'Email (логин)',
             'phone' => 'Телефон',
             'password_hash' => 'Пароль',
             'created_at' => 'Создан',

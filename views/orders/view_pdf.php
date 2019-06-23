@@ -49,6 +49,7 @@ $st = $model->status;
 
                             <?php
                             $images = \app\controllers\OrdersController::getProductImages($model, 'pdf');
+
                             if($images):
                                 ?>
                                 <div class="">
@@ -60,8 +61,7 @@ $st = $model->status;
                                                     foreach($images as $img){
                                                         if($img['isMain'])
                                                             echo $img['filePath'];
-                                                            //echo htmlspecialchars($img['filePath']);
-                                                    }
+                                                       }
                                                     ?>
                                                 </div>
                                             </td>
@@ -82,8 +82,6 @@ $st = $model->status;
                             ?>
 
                         </div>
-
-
                     </td>
 				</tr>
 				<tr>
@@ -115,45 +113,54 @@ $st = $model->status;
 				</tr>
 				<tr>
 					<td>Название торта</td>
-					<td><?/*=$products[$model->name]['name'];*/?><?=$model->name?></td>
+					<td><?=$model->name?></td>
 				</tr>
 				
 				<tr>
 					<td colspan=2 class="title">Описание заказа</td>					
 				</tr>
 				<tr>
-					<td colspan=2><?=$model->description?></td>					
+					<td colspan=3><?=$model->description?></td>
 				</tr>
                 <tr>
                     <td>Дегустационный сет</td>
                     <td><?=$model->tasting_set ? 'Да' : 'Нет';?></td>
                 </tr>
+
+                <?php
+                if($model->tasting_set):?>
+
+                <tr>
+                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=number_format(Yii::$app->params['testingSetCost'], 2, '.', ' ')?></span> <span class="currency">руб.</span></td>
+                </tr>
+                <?php
+                endif;
+                ?>
+
+
 				<tr>
 					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=number_format(\app\controllers\OrdersController::getOrderCost($model->id), 2, '.', ' ')?></span> <span class="currency">руб.</span></td>
 				</tr>
 
+                <tr>
+                    <td colspan=2 class="cost-title bg-gray">
+                        <div>Ранее оплачено: <span class="sum"><?= number_format($model->payed, 2, '.', ' ') ?> <span class="currency">руб.</span></span> </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="cost-title bg-gray">
+                        <div>Итого: <span class="sum"><?= number_format(\app\controllers\OrdersController::getOrderSum($model->id), 2, '.', ' ') ?> <span class="currency">руб.</span></span>
+                            </div>
+                    </td>
+                </tr>
                 <?php
                 if($st == 6):
                 ?>
                     <tr><td colspan="3"><p id="status6">Заказ оплачивается при доставке</p></td></tr>
                 <?php
-                else :
-                    ?>
-                    <tr>
-                        <td colspan=2 class="cost-title bg-gray">
-                            <div>Ранее оплачено: <span class="sum"><?= number_format($model->payed, 2, '.', ' ') ?> <span
-                                            class="currency">руб.</span></span> </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan=2 class="cost-title bg-gray">
-                            <div>Итого: <span class="sum"><?= number_format(\app\controllers\OrdersController::getOrderSum($model->id), 2, '.', ' ') ?> <span class="currency">руб.</span></span>
-                                </div>
-                        </td>
-                    </tr>
-                    <?php
                 endif;
                 ?>
+
 				
 			</table>
 			
