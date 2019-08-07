@@ -43,6 +43,7 @@ if(Yii::$app->user->can('admin')){
 if(Yii::$app->user->can('director')){
     $items[] = ['label' => 'Шаблоны', 'url' => Url::to(['/mail-tpl/index'])];
     $items[] = ['label' => 'Менеджеры', 'url' => Url::to(['/user/index', 'role' => 'manager'])];
+    $items[] = ['label' => 'Настройки', 'url' => Url::to(['/options/index'])];
 }
 
 if(Yii::$app->user->can('manager')){

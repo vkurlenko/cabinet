@@ -86,6 +86,25 @@ class UserController extends Controller
     {
         $model = new User();
 
+
+        if(Yii::$app->request->get('temp')){
+            $row = (new \yii\db\Query())
+                ->select(['value'])
+                ->from('temp')
+                ->where(['id' => Yii::$app->request->get('temp')])
+                ->one();
+
+            if($row['value']){
+                $arr = unserialize(base64_decode($row['value']));
+                $model->username = $arr['name'];
+                $model->phone = $arr['phone'];
+                $model->email = $arr['email'];
+            }
+
+            Yii::$app->session->set('temp_order', Yii::$app->request->get('temp'));
+
+        }
+
         if ($model->load(Yii::$app->request->post())/* && $model->save()*/) {
 
             $post = Yii::$app->request->post();
@@ -94,7 +113,67 @@ class UserController extends Controller
             $model->setPassword($post['User']['password_hash']);
             $model->generateAuthKey();
 
-            $model->save();
+            $model->save(false);
+
+            /* создание заказа из temp */
+            if(Yii::$app->session->has('temp_order')){
+
+                $row = (new \yii\db\Query())
+                    ->select(['value'])
+                    ->from('temp')
+                    ->where(['id' => Yii::$app->session->get('temp_order')])
+                    ->one();
+
+                /*
+                 * [newcab] => 1
+                    [date] => 2019-07-10
+                    [fill_id] => 163
+                    [name] => Курленко Екатерина
+                    [phone] => +79997355178
+                    [email] => vkurlenko@ramwbler.ru
+                    [customer_address] =>
+                    [customer_description] =>
+                    [tort_name] => Свадебный торт с подсветкой
+                    [part_name] => СВАДЕБНЫЕ ТОРТЫ
+                    [nachinka] =>
+                    [price] => 0
+                    [page_name] => /svadebnye-torty/sinij-svadebnyj-tort-s-geometricheskim-uzorom.html
+                    [tort_id] => 3149
+                    [tasting_set] => 0
+                    [fuid] =>
+                    [DoOrder] => Отправить заказ
+                    [degustation] => Нет
+                    [send] => Y*/
+
+                if($row){
+                    $arr = unserialize(base64_decode($row['value']));
+
+                    //debug($arr); die;
+
+                    $params = [
+                        'uid' => $model->id,
+                        'product_id' => $arr['tort_id'],
+                        'name' => $arr['tort_name'],
+                        'filling' => $arr['nachinka'],
+                        'tasting_set' => $arr['tasting_set'],
+                        'description' => $arr['customer_description'],
+                        'deliv_date' => $arr['date'],
+                        'deliv_name' => $arr['name'],
+                        'deliv_phone' => $arr['phone'],
+                        'address' => $arr['customer_address'],
+                        'order_date' => date('Y-m-d H:i:s'),
+                        'update_date' => date('Y-m-d H:i:s')
+                    ];
+
+                    //debug($params);
+                }
+
+                Yii::$app->db->createCommand()->insert('orders', $params)->execute();
+
+                //debug(Yii::$app -> db -> getLastInsertID()); die;
+                $new_order_id = Yii::$app -> db -> getLastInsertID();
+            }
+            /* /создание заказа из temp */
 
             //debug($post['User']); die;
             if($post['User']['role']){
@@ -124,10 +203,63 @@ class UserController extends Controller
                     ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
                     ->send();
 
-                if($send)
-                    Yii::$app->session->setFlash('success', 'Пользователь '.$model->username.' успешно зарегистрирован!');
-                else
-                    Yii::$app->session->setFlash('danger', 'Ошибка регистрации пользователя '.$model->username);
+                if($new_order_id){
+                    if($send){
+                        Yii::$app->session->setFlash('success', 'Пользователь '.$model->username.' успешно зарегистрирован!');
+
+                        /* отправим клиенту письмо о формировании заказа */
+                        $vars = [
+                            'order_number' => $new_order_id,
+                            'domain' => Yii::$app->params['mainDomain']
+                        ];
+
+                        $tpl_alias = 'new_order_for_client';
+                        $user = UserController::getUser($model->id);
+                        UserController::actionSetFakeUid($model->id);
+
+                        // прикрепим бланк заказа
+                        $blank_content = Yii::$app->runAction('orders/pdf', ['id' => $new_order_id, 'mode' => 'email']);
+                        $blank_filename = 'Бланк заказа №'.$new_order_id.'.pdf';
+
+                        $send = Yii::$app
+                            ->mailer
+                            ->compose(
+                                ['html' => 'tpl', 'text' => 'tpl'],
+                                ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                            )
+                            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                            ->setTo($user->email)
+                            //->setSubject('Заказ №'.$model->id.' на сайте '.Yii::$app->params['mainDomain'].' успешно сформирован ')
+                            ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                            ->attachContent($blank_content, ['fileName' => $blank_filename, 'contentType' => 'application/pdf'])
+                            ->send();
+
+                        if($send)
+                            Yii::$app->session->setFlash('success', 'Письмо о создании заказа №'.$new_order_id.' отправлено клиенту на адрес '.$user->email);
+
+                        /* /отправим клиенту письмо о формировании заказа */
+
+                        /* отправим менеджерам письмо о формировании заказа */
+                        $tpl_alias = 'new_order_for_manager';
+                        foreach(UserController::getManagersEmails() as $manager){
+                            $send = Yii::$app
+                                ->mailer
+                                ->compose(
+                                    ['html' => 'tpl', 'text' => 'tpl'],
+                                    ['tpl_alias' => $tpl_alias, 'vars' => $vars]
+                                )
+                                ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name])
+                                ->setTo($manager['email'])
+                                ->setSubject(MailTplController::getSubject($tpl_alias, $vars))
+                                ->send();
+                        }
+                        /* /отправим менеджерам письмо о формировании заказа */
+                    }
+
+                    else
+                        Yii::$app->session->setFlash('danger', 'Ошибка регистрации пользователя '.$model->username);
+                }
+
             }
 
             return $this->redirect(['view', 'id' => $model->id]);
@@ -290,6 +422,22 @@ class UserController extends Controller
             return true;
         else
             return false;
+    }
+
+    /**
+     * Есть ли заказ менеджером от имени клиента
+     *
+     * @return $user (array) || false
+     */
+    public function isFakeClient()
+    {
+        $fuid = isset($_SESSION['fuid']) ? $_SESSION['fuid'] : null;
+
+        if($fuid){
+            return self::getUser($fuid);
+        }
+
+        return false;
     }
 
     /**

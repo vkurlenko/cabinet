@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use app\controllers\OptionsController;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
@@ -94,7 +95,7 @@ $st = $model->status;
 				</tr>
 				<tr>
 					<td>Дата доставки</td>
-					<td><?=$model->deliv_date?></td>
+					<td><?=\app\controllers\AppController::formatDate($model->deliv_date)?></td>
 				</tr>
 				<tr>
 					<td>Адрес доставки</td>
@@ -120,7 +121,7 @@ $st = $model->status;
 					<td colspan=2 class="title">Описание заказа</td>					
 				</tr>
 				<tr>
-					<td colspan=3><?=$model->description?></td>
+					<td colspan=3 class="<?=iconv_strlen($model->description) > 800 ? 'description' : ''?>"><?=$model->description?></td>
 				</tr>
                 <tr>
                     <td>Дегустационный сет</td>
@@ -131,7 +132,7 @@ $st = $model->status;
                 if($model->tasting_set):?>
 
                 <tr>
-                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=number_format(Yii::$app->params['testingSetCost'], 2, '.', ' ')?></span> <span class="currency">руб.</span></td>
+                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=number_format(OptionsController::getOption('testingSetCost')->value, 2, '.', ' ')?></span> <span class="currency">руб.</span></td>
                 </tr>
                 <?php
                 endif;

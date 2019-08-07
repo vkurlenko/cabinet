@@ -184,8 +184,6 @@ class OrdersController extends Controller
             $send = Yii::$app
                 ->mailer
                 ->compose(
-                   /* ['html' => 'newOrder-html', 'text' => 'newOrder-html'],
-                    ['model' => $model]*/
                     ['html' => 'tpl', 'text' => 'tpl'],
                     ['tpl_alias' => $tpl_alias, 'vars' => $vars]
                 )
@@ -271,6 +269,17 @@ class OrdersController extends Controller
         ]);
     }
 
+    /*public function actionSetSession()
+    {
+        if(Yii::$app->request->post('sess')){
+            $session = Yii::$app->session;
+            $session->set('new_order', Yii::$app->request->post('sess'));
+            return 'success';
+        }
+
+        return 'fail';
+    }*/
+
     /**
      * Загрузим картинку продукта, если заказ из каталога и ранее загрузок не было
      *
@@ -303,9 +312,11 @@ class OrdersController extends Controller
 		// проверка прав на удаление
 		$model = $this->findModel($id);
 		if(self::checkMyOrder($model->uid, $model->manager)){
+		    //die('author');
             if($setstatus)
                 self::setStatus($id, $setstatus);
         }
+        //die('not author');
         
 		//self::setLog($id, $model->status, $setstatus);
 		
@@ -364,7 +375,7 @@ class OrdersController extends Controller
 
             /* если авторизован */
             $freeorder = new Orders();
-            $freeorder->uid = Yii::$app->user->getId();
+            $freeorder->uid = $model->uid;//Yii::$app->user->getId();
             $freeorder->order_date = date('Y-m-d H:i:s');
             $freeorder->update_date = date('Y-m-d H:i:s');
             $freeorder->cost = 0;
@@ -372,11 +383,15 @@ class OrdersController extends Controller
 
             $freeorder->name = 'Произвольный заказ';
             $freeorder->filling = '';
+            $freeorder->deliv_phone = $model->deliv_phone;
+            $freeorder->deliv_name = $model->deliv_name;
             $freeorder->description = $model->description;
             $freeorder->deliv_date = $model->deliv_date;
             $freeorder->address = $model->address;
             $freeorder->manager = 0;
             $freeorder->status =  0;
+
+            //debug($freeorder); die;
 
             $save = $freeorder->save();
 
@@ -482,10 +497,11 @@ class OrdersController extends Controller
             $arr = $model->getImages();
 
             if($arr){
+                $i = 1;
                 foreach($arr as $image){
 
                     if($mode == 'pdf'){
-                        $size = $image['isMain'] ? '300x300' : '100x100';
+                        $size = $image['isMain'] ? '300x' : '100x100';
                         $slash = Yii::$app->params['prevSlash'] ? '/' : '';
                     }
                     else{
@@ -495,13 +511,13 @@ class OrdersController extends Controller
 
                     $img[] = [
                         'id' => $image['id'],
-                        //'isMain' => $image['isMain'], // главное изображение
                         'isMain' => $image['isMain'], // главное изображение
                         'filePath' => Html::img($slash.$image->getPath($size), [
                             'data-origin' => $slash.$image->getPathToOrigin(),
                             //'data-origin' => $slash.$image->getPath('400x400'),
                             'data-imgid' => $image['id'],
                             'data-modelid' => $model->id,
+                            'class' => $image['isMain'] ? 'image0' : 'image'.$i++
                             ])
                     ];
                 }
@@ -570,6 +586,14 @@ class OrdersController extends Controller
         }
         else
             return false;
+    }
+
+    public function getOrder($order_id)
+    {
+        if($order_id){
+            $order = Orders::findOne($order_id);
+        }
+        return $order ? $order : null;
     }
 
     /**
@@ -769,10 +793,13 @@ class OrdersController extends Controller
                     // если заказ был в статусе "Оплата при доставке", то при "Выставить счет" статус не меняется
                     self::doStatusAction($id, $status, $old_status);
                 }
+                elseif(in_array($status, [5, 6, 60]) && $order->cost == 0){
+                    Yii::$app->session->setFlash('danger', 'Стоимость заказа не указана');
+                }
                 else{
                     $order->status = $status;
 
-                    if($order->save()){
+                    if($order->save(false)){
                         self::setLog($id, $old_status);
 
                         self::doStatusAction($id, $status, $old_status);
@@ -813,6 +840,19 @@ class OrdersController extends Controller
         return $isAuthor;
     }
 
+    public function getOrderFullSum($order_id = null){
+        $sum = 0;
+
+        if($order_id){
+            $order = Orders::findOne($order_id);
+            $sum = (int)$order->cost;
+
+            $sum = $order->tasting_set ? ($sum + OptionsController::getOption('testingSetCost')->value) : $sum;
+        }
+
+        return $sum;
+    }
+
     public function getOrderSum($order_id = null){
 	    $sum = 0;
 
@@ -820,7 +860,7 @@ class OrdersController extends Controller
 	        $order = Orders::findOne($order_id);
             $sum = (int)$order->cost - (int)$order->payed;
 
-            $sum = $order->tasting_set ? ($sum + Yii::$app->params['testingSetCost']) : $sum;
+            $sum = $order->tasting_set ? ($sum + OptionsController::getOption('testingSetCost')->value) : $sum;
         }
 
 	    return $sum;
@@ -1066,6 +1106,20 @@ class OrdersController extends Controller
 
                     break;
 
+                // статус ОПЛАЧЕН
+                case 5:
+                    $order->payed = self::getOrderFullSum($order_id);
+                    //debug(self::getOrderFullSum($order_id)); die;
+                    $order->save();
+                    break;
+
+                // статус ОПЛАЧЕН
+                case 60:
+                    $order->payed = self::getOrderFullSum($order_id);
+                    //debug(self::getOrderFullSum($order_id)); die;
+                    $order->save();
+                    break;
+
                 // установлен статус Оплата при доставке
                 case 6:
                     // прикрепим бланк заказа
@@ -1126,6 +1180,7 @@ class OrdersController extends Controller
                     $order_copy = new Orders();
                     $order_copy->attributes = $order->attributes;
                     $order_copy->status = 0;
+                    $order_copy->payed = 0;
                     if(!$order_copy->save()){
                         //either print errors or redirect
                         Yii::$app->session->setFlash('danger', $order_copy->getErrors());
@@ -1242,25 +1297,53 @@ class OrdersController extends Controller
 
     public function actionSuccess()
     {
+        //die('actionSuccess'); die;
         if(Yii::$app->request->get('orderId')){
             $res = PayController::getPayStatus(Yii::$app->request->get('orderId'));
 
-            //debug($res);
+            //debug($res); die;
 
             if($res['orderStatus'] === 1){
                 //echo __LINE__;
                 if(PayController::depositDo(Yii::$app->request->get('orderId'))){
                     //echo __LINE__;
-                    self::setStatus(Yii::$app->request->get('id'), 5); // заказ оплачен
+                    //self::setStatus(Yii::$app->request->get('id'), 5); // заказ оплачен
+
 
                     $order = $this->findModel(Yii::$app->request->get('id'));
+                    //echo $order->payed.'+'.$res['amount'] / 100; die;
                     $order->payed = $order->payed + $res['amount'] / 100;
+                    $order->payed = $res['amount'] / 100;
+
+                    $tasting_set = $order->tasting_set ? \app\controllers\OptionsController::getOption('testingSetCost')->value : 0;
+
+                    if((int)$order->payed == ((int)$order->cost +  $tasting_set)){
+                        self::setLog(Yii::$app->request->get('id'), $order->status, 5);
+                        $order->status = 5;
+                    }
+
                     $order->save(false);
                 }
             }
         }
 
         return $this->render('success');
+        //return $this->render('view?id='.Yii::$app->request->get('orderId'));
+    }
+
+    public function getFillingById($fill_id = null)
+    {
+        if($fill_id){
+            $row = (new \yii\db\Query())
+                ->select(['Name'])
+                ->from(' fx_menu_product_content')
+                ->where(['ID' => $fill_id])
+                ->one();
+
+            return $row;
+        }
+
+        return false;
     }
 
 

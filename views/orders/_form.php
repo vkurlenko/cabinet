@@ -15,14 +15,18 @@ $datepicker = [
     'options' => ['placeholder' => 'Выберите дату ...'],
     'pluginOptions' => [
         'format' => 'yyyy-mm-dd',
-        'todayHighlight' => true
+        'todayHighlight' => true,
+        'startDate' => date('Y-m-d')
     ]
 ];
+
+//debug($model);
 
 $isClient = \app\controllers\UserController::isClient();
 
 $products = \app\controllers\OrdersController::getProductsGroped();
 
+$fakeClient = \app\controllers\UserController::isFakeClient();
 
 if($uid && !$isClient){
     $model->uid = $uid;
@@ -36,8 +40,9 @@ if(null !== Yii::$app->request->get('free'))
 ?>
 
 <div class="orders-form row garamond">
+    <?php $form = ActiveForm::begin(); ?>
 	<div class="col-md-8">
-		<?php $form = ActiveForm::begin(); ?>
+
 
         <?php
         /* только для менеджера */
@@ -122,6 +127,15 @@ if(null !== Yii::$app->request->get('free'))
             $deliv_phone = '';
         }
         $model->deliv_phone = $deliv_phone;*/
+        if($fakeClient){
+            $model->deliv_name = $fakeClient['username'];
+            $model->deliv_phone = $fakeClient['phone'];
+        }
+        else{
+            /*$model->deliv_name = '';
+            $model->deliv_phone = '';*/
+        }
+        //$model->deliv_phone = $deliv_phone;
         ?>
         <?/*= $form->field($model, 'deliv_name')->textInput(['value' => $deliv_name])->hint('Кому предназначен заказ') */?>
         <?/* ??????????????????????? */?>
@@ -182,50 +196,75 @@ if(null !== Yii::$app->request->get('free'))
         /* /только для менеджера */
         ?>
 
-        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); ?>
-        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label('');; ?>
-        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label('');; ?>
+        <?/*= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*']); */?><!--
+        <?/*= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label(''); */?>
+        --><?/*= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*'])->label(''); */?>
 
-        <span id="load-pic">Загрузить</span>
+        <!--<span id="load-pic">Загрузить</span>-->
 
         <div class="form-group">
 			<?= Html::submitButton('Сохранить', ['class' => 'btn ext-btn']) ?>
 		</div>
 
-		<?php ActiveForm::end(); ?>
+
 	</div>
 	
 	<div class="col-md-4">
 			<div class="product-img">
-
                 <?php
                 $images = \app\controllers\OrdersController::getProductImages($model);
-                if($images):
+
                 ?>
-                <div class="">
-                    <div class="product-img-main">
-                        <?php
-                        foreach($images as $img){
-                            if($img['isMain'])
-                                echo $img['filePath'];
-                        }
-                        ?>
-                    </div>
-                    <div class="product-img-other">
-                        <?php
-                        foreach($images as $img) {
-                                ?>
-                                <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
-                                    <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
-                                </div>
+                    <div class="">
+                        <div class="product-img-main">
+                            <!--<img src="#" alt="" class="image0" />-->
                             <?php
-                        }
+                            //debug($images);
+                            if(count($images) === 1 && $images[0]['id'] == ''){
+                                echo '<img src="#" alt="" class="image0" />';
+                            }
+                            else{
+                                foreach($images as $img){
+                                    if($img['isMain'])
+                                        echo $img['filePath'];
+                                }
+                            }
                             ?>
+                            <?/*= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*', 'class' => 'load', 'data-target' => 'image0']); */?>
+                        </div>
+
+
+                        <div class="product-img-other">
+                            <?php
+                                $i = 0;
+                                for($i = 0; $i < 3; $i++):
+                                ?>
+                                <div class="cont">
+                                    <div>
+                                        <img src="#" alt="" class="image<?=$i?>" />
+                                        <?= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*', 'class' => 'load', 'data-target' => 'image'.$i])->label(''); ?>
+                                        <span>Добавить фото</span>
+                                    </div>
+
+                                    <?php
+                                    if(isset($images[$i]) && $images[$i]['id'] != ''):
+                                        $img = $images[$i];
+                                        ?>
+                                        <div id="img-<?=$img['id']?>" class="d">
+                                            <?= $img['filePath']?>
+                                            <?= Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) ?>
+                                        </div>
+                                    <?php
+                                    endif;
+                                    ?>
+                                </div>
+                                <?php
+                                endfor;
+                            ?>
+                            <div style="clear: both"></div>
+                        </div>
                     </div>
-                </div>
-                <?php
-                endif;
-                ?>
+
 
 			<?php
            /*
@@ -236,6 +275,7 @@ if(null !== Yii::$app->request->get('free'))
 
 			</div>
 		</div>
+    <?php ActiveForm::end(); ?>
 </div>
 
 

@@ -51,7 +51,7 @@ AppAsset::register($this);
 
         <div class="col-md-6 logo">
             <a class="header" href="<?=Yii::$app->params['mainDomain']?>">
-                <img src="<?=Yii::$app->params['mainDomain']?>/img/_kond_v2/logo.png" alt="КОНДИТЕРСКАЯ «КОЛЕСО ВРЕМЕНИ»">
+                <img src="<?=Yii::$app->params['mainDomain']?>/img/_kond_v2/logo.png" alt="Мастерская тортов">
             </a>
         </div>
 

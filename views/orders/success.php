@@ -14,7 +14,7 @@ $this->title = $name;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <div class="alert alert-success">
-        Опата прошла успешно
+        Оплата прошла успешно
         <?/*= nl2br(Html::encode($msg)) */?>
     </div>
 

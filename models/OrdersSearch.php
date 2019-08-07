@@ -58,8 +58,7 @@ class OrdersSearch extends Orders
         ]);
 
         $this->load($params);
-		
-		//debug($params); die;
+
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
@@ -123,13 +122,18 @@ class OrdersSearch extends Orders
             //'status' => $status //$this->status,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'filling', $this->filling])
+        //$query->andFilterWhere(['like', 'name', $this->name])
+        $query->andFilterWhere(['like', 'filling', $this->filling])
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'address', $this->address])
-			->andFilterWhere($status)
+			//->andFilterWhere($status)
             //->andFilterWhere($manager)
             ->andFilterWhere($between ? $between : [$this->order_date]);
+
+        // если не задана строка поиска, то выводим только определенный статус
+        if(!$params['OrdersSearch']['name']){
+            $query->andFilterWhere($status);
+        }
 
         /*if($role['user']){
             $query->andFilterWhere([
@@ -146,6 +150,61 @@ class OrdersSearch extends Orders
             ]);
         }
 
+        /* простой поиск по имени клиента, номеру заказа, названию торта */
+        if($params['OrdersSearch']['name']){
+
+            // строка поиска
+            $search_string = $params['OrdersSearch']['name'];
+
+            // дополнительное условие для выборки на основании строки поиска
+            $query->andFilterWhere($this->searchByString($search_string));
+        }
+        /* /простой поиск по имени клиента, номеру заказа, названию торта */
+
         return $dataProvider;
     }
+
+
+    /**
+     * Условие для поиска по строке
+     *
+     * @param $string - поисковый запрос
+     *
+     * @return array - условие выборки по запросу
+     */
+    private function searchByString($string)
+    {
+        $ids = [];
+        $users = [];
+
+        $arr = User::find()
+                ->select(['id'])
+                ->where(['like', 'username', $string])
+                ->asArray()
+                ->indexBy('id')
+                ->all();
+
+        if($arr){
+            foreach($arr as $k => $v)
+                $users[] = $k;
+        }
+
+        $query2 = Orders::find()
+            ->where(['like', 'name', $string])
+            ->orWhere(['like',   'id',  $string])
+            ->orWhere(['in',   'uid',  $users])
+            ->asArray()
+            ->indexBy('id')
+            ->all();
+
+        foreach($query2 as $k => $v){
+            $ids[] = $k;
+        }
+
+        $cond = ['in', 'id', $ids];
+
+        return $cond;
+    }
+
+
 }

@@ -32,4 +32,10 @@ class AppController extends Controller
     {
         $arr = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
     }
+
+    public function formatDate($datetime, $showTime = false)
+    {
+        $format = $showTime ? 'd.m.Y h:i:s' : 'd.m.Y';
+        return date($format ,strtotime($datetime));
+    }
 }

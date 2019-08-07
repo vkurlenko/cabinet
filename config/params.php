@@ -35,7 +35,7 @@ return [
     'hashLifetime' => 60 * 60,
 
     // время жизни сессии для оплаты (секунд)
-    'sessionTimeoutSecs' => 60, // * 60 * 24, // 24 часа
+    'sessionTimeoutSecs' => 60 * 60 * 24, // 24 часа
 
     // сообщения об ошибках
     'errors' => [

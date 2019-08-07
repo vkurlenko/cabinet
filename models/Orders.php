@@ -54,7 +54,7 @@ class Orders extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'name'], 'required'],
+            [['uid', 'name', 'deliv_date'], 'required'],
             [['uid', 'cost', 'payed', 'manager', 'status', 'tasting_set'], 'integer'],
             [['filling', 'description', 'address', 'deliv_name'], 'string'],
             ['deliv_phone', 'match', 'pattern' => '/^\+7[0-9]{10}$/', 'message' => 'Введите номер в формате +71234567890'],
@@ -115,6 +115,7 @@ class Orders extends \yii\db\ActiveRecord
 			30 => 'Удален',             // можно удалить в любом статусе до отправлен в банк, если оплачено 0
             40 => 'Перезаказ',          // изменение номера заказа копированием в новый заказ
             50 => 'Оплата отменена',          // изменение номера заказа копированием в новый заказ
+            60 => 'Оплачен фиктивно'    // оплата по кнопке
         ];
     }
 

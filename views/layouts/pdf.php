@@ -43,7 +43,7 @@ AppAsset::register($this);
 
                 <td width="40%" align="center" class="td-logo">
                     <div class="logo">
-                        <?=Html::img('img/logo.png', ['alt' => 'КОНДИТЕРСКАЯ «КОЛЕСО ВРЕМЕНИ»', 'id' => 'im'])?>
+                        <?=Html::img('img/logo.png', ['alt' => 'МАСТЕРСКАЯ ТОРТОВ', 'id' => 'im'])?>
                     </div>
                 </td>
 

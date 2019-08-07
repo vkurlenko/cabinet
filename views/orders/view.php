@@ -7,6 +7,8 @@ use app\models\Hash;
 use app\models\Orders;
 use app\controllers\OrdersController;
 
+use app\controllers\OptionsController;
+
 /* @var $this yii\web\View */
 /* @var $model app\models\Orders */
 
@@ -89,7 +91,7 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                 </tr>
                 <tr>
                     <td>Дата доставки</td>
-                    <td><?=$model->deliv_date?></td>
+                    <td><?=\app\controllers\AppController::formatDate($model->deliv_date)?></td>
                 </tr>
                 <tr>
                     <td>Название торта</td>
@@ -131,20 +133,25 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                 if($model->tasting_set):?>
 
                 <tr>
-                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=Yii::$app->params['testingSetCost']?></span> <span class="currency">руб.</span></td>
+                    <td colspan=2 class="cost-title">Стоимость дегустационного сета: <span><?=OptionsController::getOption('testingSetCost')->value?></span> <span class="currency">руб.</span></td>
                 </tr>
                 <?php
                 endif;
                 ?>
 
 				<tr>
+                    <?
+                    $sum = OrdersController::getOrderSum($model->id);
+                    //$sum = $sum * -1;
+                    $note = ($sum < 0) ? '(Вернуть клиенту. Переплата)' : '';
+                    ?>
 					<td colspan=2 class="cost-title">Стоимость заказа: <span><?=OrdersController::getOrderCost($model->id)?></span> <span class="currency">руб.</span></td>
 				</tr>
 				<tr>
 					<td colspan=2 class="cost-title bg-gray"><div>Ранее оплачено: <span class="sum"><?=$model->payed?></span> <span class="currency">руб.</span></div></td>					
 				</tr>
 				<tr>
-					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?= OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span></div></td>
+					<td colspan=2 class="cost-title bg-gray"><div>Итого: <span class="sum"><?= OrdersController::getOrderSum($model->id)?></span> <span class="currency">руб.</span> <?=$note?></div></td>
 				</tr>
 				
 			</table>
@@ -159,8 +166,25 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                     //if($model->status === 1):
                     if(in_array($model->status, [1, 4])):
                     ?>
-                        <?= Html::checkbox('agree', false, ['label' => 'Я прочитал и принимаю договор оферты', 'class' => 'agree']) ?><br>
-                        <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ]]) ?>
+                        <div class="tort2016_ch "></div>
+                <div class="block-agree">
+
+                    <?php
+                    if(OptionsController::getOption('file_offer')->value){
+                        $text = Html::a(' договор оферты', [OptionsController::getOption('file_offer')->value], ['style' => 'color: #CC3333', 'target' => 'blank',]);
+                    }
+                    else{
+                        $text = ' договор оферты';
+                    }
+
+                    ?>
+
+                    <?= Html::checkbox('agree', 0, ['label' => 'Я прочитал и принимаю '.$text, 'class' => 'agree' ]) ?><br>
+                </div>
+
+                        <div style="text-align: center; padding: 20px">
+                        <?= Html::a('Оплатить', ['#'], ['class' => 'ext-btn btn-pay red btn-deactive', 'data' => ['url' => '/pay/pay-order?order_id='.$model->id, ], ]) ?>
+                        </div>
                     <?php
                     else:
                         //echo '<p class="alert alert-danger">Оплата невозможна, обратитесь к менеджеру</p>';
@@ -171,7 +195,14 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                 elseif(Yii::$app->user->getId()):
                     if($model->status == 5){
                         // если статус заказа "Оплачен"
+                        echo Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']);
                         echo Html::a('Доплата к заказу', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn red']);
+                    }
+                    elseif($model->status == 4){
+                        echo Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red', 'data' => [
+                            'confirm' => 'Уточните у клиента не находится ли он в банке и не оплачивает ли заказ',
+                            'method' => 'post',
+                        ]]);
                     }
                     /*elseif(in_array($model->status, [20, 30]) ){
                         echo Html::a('Перезаказать', ['view', 'id' => $model->id, 'setstatus' => 40], ['class' => 'ext-btn red']);
@@ -193,8 +224,9 @@ $manager = \app\controllers\UserController::getUser($model->manager);
                     else{
                         ?>
                         <?= Html::a('Вернуть на редактирование', ['update', 'id' => $model->id, 'setstatus' => 7], ['class' => 'ext-btn']) ?>
-                        <?= !in_array($model->status, [1, 4]) ? Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) : '' ?>
+                        <?= (!in_array($model->status, [1, 4]) && (int)OrdersController::getOrderSum($model->id) > 0) ? Html::a('Выставить счет', ['view', 'id' => $model->id, 'setstatus' => 1], ['class' => 'ext-btn red']) : '' ?>
                         <div></div>
+                        <?/*= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) */?>
                         <?= Html::a('Заказ оплачен', ['view', 'id' => $model->id, 'setstatus' => 5], ['class' => 'ext-btn gray']) ?>
                         <?= Html::a('Оплата при доставке', ['view', 'id' => $model->id, 'setstatus' => 6], ['class' => 'ext-btn red']) ?>
                         <div></div>
@@ -221,37 +253,49 @@ $manager = \app\controllers\UserController::getUser($model->manager);
 		<div class="col-md-4">
 
             <div class="product-img">
-
                 <?php
-                $images = OrdersController::getProductImages($model);
-                if($images):
-                    ?>
-                    <div class="">
-                        <div class="product-img-main">
-                            <?php
+                $images = \app\controllers\OrdersController::getProductImages($model);
+
+                ?>
+                <div class="">
+                    <div class="product-img-main">
+                        <?php
+
                             foreach($images as $img){
                                 if($img['isMain'])
                                     echo $img['filePath'];
                             }
-                            ?>
-                        </div>
-                        <div class="product-img-other">
-                            <?php
-                            foreach($images as $img) {
-                                ?>
-                                <div id="img-<?=$img['id']?>"><?= $img['filePath'] ?>
-                                    <?php if($img['id']):?>
-                                    <?=  !$isUser ?  Html::a('удалить', '#', ['class' => 'product-img-del', 'data-imgid' => $img['id'], 'data-modelid' => $model->id]) : '' ?>
-                                    <?php endif;?>
-                                    </div>
-                                <?php
-                            }
-                            ?>
-                        </div>
+
+                        ?>
+                            <?/*= $form->field($model, 'images[]')->fileInput(['multiple' => true, 'accept' => 'image/*', 'class' => 'load', 'data-target' => 'image0']); */?>
                     </div>
-                <?php
-                endif;
-                ?>
+
+
+                    <div class="product-img-other-view" style="margin-top: 5px">
+                        <?php
+                        $i = 0;
+                        for($i = 0; $i < 3; $i++):
+                        ?>
+                        <div class="cont">
+
+                            <?php
+                            if(isset($images[$i]) && $images[$i]['id'] != ''):
+                            $img = $images[$i];
+                            ?>
+                            <div id="img-<?=$img['id']?>" class="d">
+                                <?= $img['filePath']?>
+                            </div>
+                            <?php
+                            endif;
+                            ?>
+                        </div>
+                        <?php
+                        endfor;
+                        ?>
+                        <div style="clear: both"></div>
+                    </div>
+                </div>
+
 
                 <?php
                 /*
@@ -262,9 +306,6 @@ $manager = \app\controllers\UserController::getUser($model->manager);
 
             </div>
 
-            <!--<div class="product-img">
-                <?/*=$products[$model->name]['img'] ? Html::img(Yii::$app->params['mainDomain'].'/images/restoran_menu/'.$products[$model->name]['img']) : '';*/?>
-            </div>		-->
 		</div>
 	</div>
 

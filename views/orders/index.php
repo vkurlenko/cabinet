@@ -55,6 +55,8 @@ $this->params['breadcrumbs'][] = $this->title;
     // панель Текущие заказы/История
 	//if($isUser)
        echo $this->render('/blocks/orders_nav');
+
+       //debug($dataProvider);
 	?>
 
 
@@ -82,7 +84,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
 				'format' => 'html'				
             ],
-			'order_date',
+            [
+                'attribute' => 'order_date',
+                //'label' => '№',
+                'value' => function($data){
+                    $data->order_date = \app\controllers\AppController::formatDate($data->order_date, true);
+
+                    return $data->order_date;
+                },
+                'format' => 'html'
+            ],
             [
                 'attribute' => 'name',
                 'value' => function($data){
@@ -143,8 +154,17 @@ $this->params['breadcrumbs'][] = $this->title;
                 'visible'=> $isUser ? false : true,
 				'format' => 'html'
             ],
-			'deliv_name',
-            'deliv_date',
+			//'deliv_name',
+            [
+                'attribute' => 'deliv_date',
+                //'label' => '№',
+                'value' => function($data){
+                    $data->deliv_date = \app\controllers\AppController::formatDate($data->deliv_date);
+
+                    return $data->deliv_date;
+                },
+                'format' => 'html'
+            ],
             [
                 'attribute' => 'manager',
                 'value' => function($data){
@@ -225,3 +245,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 </div>
+
+<?php
+$search = Yii::$app->request->get('OrdersSearch')['name'];
+$script = <<< JS
+    $('.grid-view table tbody').highlight('$search');
+JS;
+//маркер конца строки, обязательно сразу, без пробелов и табуляции
+$this->registerJs($script, yii\web\View::POS_END);

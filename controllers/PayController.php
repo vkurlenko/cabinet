@@ -188,8 +188,8 @@ class PayController extends Controller
         if($pay_id){
 
             $vars = array();
-            $vars['userName'] = Yii::$app->params['merchantLogin']; //'логин';
-            $vars['password'] = Yii::$app->params['merchantPwd']; //'пароль';
+            $vars['userName'] = self::getMerchantLogin(); //Yii::$app->params['merchantLogin']; //'логин';
+            $vars['password'] = self::getMerchantPwd(); //Yii::$app->params['merchantPwd']; //'пароль';
             $vars['orderId'] = $pay_id;
 
             $ch = curl_init('https://3dsec.sberbank.ru/payment/rest/getOrderStatusExtended.do?' . http_build_query($vars));
@@ -219,9 +219,9 @@ class PayController extends Controller
     {
 
         $vars = array();
-        $vars['userName'] = Yii::$app->params['merchantLogin']; //'логин';
-        $vars['password'] = Yii::$app->params['merchantPwd']; //'пароль';
-        $vars['sessionTimeoutSecs'] = Yii::$app->params['sessionTimeoutSecs']; // время жизни сессии
+        $vars['userName'] = self::getMerchantLogin(); //Yii::$app->params['merchantLogin']; //'логин';
+        $vars['password'] = self::getMerchantPwd(); //Yii::$app->params['merchantPwd']; //'пароль';
+        $vars['sessionTimeoutSecs'] = self::getSessionTimeoutSecs(); //\app\controllers\OptionsController::getOption('sessionTimeoutSecs')->value; //Yii::$app->params['sessionTimeoutSecs']; // время жизни сессии
 
         // ID платежа в магазине
         $vars['orderNumber'] = $pay->id; //$order_id;
@@ -229,15 +229,21 @@ class PayController extends Controller
         // Сумма заказа в копейках.
         $vars['amount'] = $sum * 100;
 
+        $order = OrdersController::getOrder($order_id);
+        $user = UserController::getUser($order->uid);
+        $vars['jsonParams'] = '{"email":"'.$user['email'].'"}';
+
         if(Yii::$app->user->getId()){
             // URL куда клиент вернется в случае успешной оплаты.
-            $vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+            //$vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+            $vars['returnUrl'] = Yii::$app->params['subDomain'].'/orders/success?id='.$order_id;
 
             // URL куда клиент вернется в случае ошибки.
-            $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+            //$vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/view?id='.$order_id;
+            $vars['failUrl'] = Yii::$app->params['subDomain'].'/orders/error?id='.$order_id;
 
-            $user = UserController::getUser(Yii::$app->user->getId());
-            $vars['jsonParams'] = '{"email":"'.$user['email'].'"}';
+            //$user = UserController::getUser(Yii::$app->user->getId());
+            //$vars['jsonParams'] = '{"email":"'.$user['email'].'"}';
         }
         else{
             // URL куда клиент вернется в случае успешной оплаты.
@@ -277,7 +283,7 @@ class PayController extends Controller
 
             self::setPayItem($pay, $order_id, $res['orderId'], $vars['amount']);
             Yii::$app->session->setFlash('success', 'Платеж зарегистрирован');
-//echo __LINE__; die;
+            //echo __LINE__; die;
             // Перенаправление клиента на страницу оплаты.
             header('Location: ' . $res['formUrl'], true);
 
@@ -298,8 +304,8 @@ class PayController extends Controller
     public static function depositDo($orderId)
     {
         $vars = array();
-        $vars['userName'] = Yii::$app->params['merchantLogin']; //'логин';
-        $vars['password'] = Yii::$app->params['merchantPwd']; //'пароль';
+        $vars['userName'] = self::getMerchantLogin(); //Yii::$app->params['merchantLogin']; //'логин';
+        $vars['password'] = self::getMerchantPwd(); //Yii::$app->params['merchantPwd']; //'пароль';
 
         // Номер заказа в платежной системе.
         $vars['orderId']  = $orderId;
@@ -431,5 +437,20 @@ class PayController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    protected function getMerchantLogin()
+    {
+        return OptionsController::getOption('merchantLogin')->value;
+    }
+
+    protected function getMerchantPwd()
+    {
+        return OptionsController::getOption('merchantPwd')->value;
+    }
+
+    protected function getSessionTimeoutSecs()
+    {
+        return OptionsController::getOption('sessionTimeoutSecs')->value;
     }
 }

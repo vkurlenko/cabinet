@@ -187,8 +187,11 @@ span.status > strong{
 }
 
 .product-img-other img{
-	opacity: .5;
+	/*opacity: .5;*/
 	max-width: 115px;
+	position: absolute;
+	z-index: 222;
+	left: 0;
 }
 
 .product-img-other img.active{
@@ -196,10 +199,19 @@ span.status > strong{
 }
 
 .product-img-other div{
-	width: 33.3%;
-	float: left;
+	/*width: 33.3%;*/
+	/*float: left;*/
 	text-align: center;
-	/*background: #ccc;*/
+	/*background: #f30;*/
+	position: relative;
+}
+
+.product-img-other div.d{
+	background: #ccc;
+	height: 170px;
+	position: absolute;
+	width: 115px;
+	top: 0;
 }
 
 .product-img-other div:first-child{
@@ -214,6 +226,39 @@ span.status > strong{
 	display: inline-block;
 	text-align: center;
 	width: 100%;
+	top: 180px;
+	position: relative;
+}
+
+.product-img-other .load{
+	display: inline-block;
+	width: 115px;
+	height: 152px;
+	background: #ccc;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.cont{
+	width: 115px;
+	float: left;
+	margin-right: 4px;
+}
+
+.cont .field-orders-images{
+	background: #ccc;
+}
+
+.cont  span{
+	position: absolute;
+	left: 8px;
+	bottom: 77px;
+	display: inline-block
+}
+
+.product-img-other-view .cont{
+	height: 152px;
+	background: #ccc;
 }
 
 span.sum{
@@ -270,6 +315,11 @@ span.sum{
 p.alert{
 	margin:15px 0;
 }
+
+p.alert-success{
+	font-size: 20px;
+}
+
 /* /кнопки */
 
 /* мои заказы */
@@ -403,6 +453,21 @@ span.status a{
 }
 
 /* /произвольный заказ */
+
+.tort2016_ch{
+	margin-right: 10px;
+}
+.agree{
+	display: none;
+}
+.block-agree *{
+	font-size: 20px;
+}
+
+.highlight{
+	background: yellow;
+	border: 1px solid red;
+}
 
 #fill-field{
 	position: relative;

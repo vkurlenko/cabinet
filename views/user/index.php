@@ -92,14 +92,14 @@ else{
             [
                 'attribute' => 'created_at',
                 'value' => function($data){
-                    return date('d-m-Y', $data->created_at);
+                    return date('d.m.Y', $data->created_at);
                 },
                 'format' => 'html'
             ],
             [
                 'attribute' => 'updated_at',
                 'value' => function($data){
-                    return date('d-m-Y', $data->updated_at);
+                    return date('d.m.Y', $data->updated_at);
                 },
                 'format' => 'html'
             ],

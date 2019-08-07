@@ -16,7 +16,6 @@ function arrDropDownRoles(){
     }
     return $arr;
 }
-
 $role = \app\models\AuthAssignment::find()->where(['user_id' => $model->id])->asArray()->one();
 ?>
 

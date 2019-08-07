@@ -31,6 +31,7 @@ class AppAsset extends AssetBundle
         'https://3dsec.sberbank.ru/demopayment/docsite/assets/js/ipay.js',
         'https://cdn.jsdelivr.net/momentjs/latest/moment.min.js',
         'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js',
+        'js/jquery.highlight.js',
         'js/script.js',
     ];
     public $depends = [
